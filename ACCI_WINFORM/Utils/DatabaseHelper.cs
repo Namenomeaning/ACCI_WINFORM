@@ -1,0 +1,53 @@
+﻿using System.Data;
+using MySqlConnector;
+
+namespace ACCI_WINFORM.Utils
+{
+    public static class DatabaseHelper
+    {
+        private static readonly string connectionString = "Server=localhost;Port=33306;Database=ACCI;User=root;Password=root;";
+
+        private static MySqlConnection CreateAndOpenConnection()
+        {
+            var connection = new MySqlConnection(connectionString);
+            connection.Open();
+            return connection;
+        }
+
+        private static void CloseConnection(MySqlConnection connection)
+        {
+            if (connection != null && connection.State != ConnectionState.Closed)
+            {
+                connection.Close();
+            }
+        }
+
+        public static DataTable ExecuteQuery(string query, params MySqlParameter[] parameters)
+        {
+            DataTable dataTable = new DataTable();
+            MySqlConnection connection = null;
+
+            try
+            {
+                connection = CreateAndOpenConnection();
+                using var command = new MySqlCommand(query, connection);
+
+                if (parameters != null)
+                    command.Parameters.AddRange(parameters);
+
+                using var adapter = new MySqlDataAdapter(command);
+                adapter.Fill(dataTable);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi thực thi truy vấn: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                CloseConnection(connection);
+            }
+
+            return dataTable;
+        }
+    }
+}
