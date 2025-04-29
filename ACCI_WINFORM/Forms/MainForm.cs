@@ -25,7 +25,7 @@ namespace ACCI_WINFORM
             switch (_nhanVien.VaiTro)
             {
                 case "TiepNhan":
-                    AddButton("Lập Phiếu Đăng Ký", () => new TemplateForm().Show());
+                    AddButton("Lập Phiếu Đăng Ký", () => new DangKyForm().Show());
                     AddButton("Tra Cứu Phiếu Đăng Ký", () => new TemplateForm().Show());
                     break;
                 case "KeToan":
@@ -57,6 +57,11 @@ namespace ACCI_WINFORM
         {
             this.Close();
             new LoginForm().Show();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

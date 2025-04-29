@@ -94,5 +94,37 @@ namespace ACCI_WINFORM.DataAccess
             var parameters = new[] { new MySqlParameter("@MaLichThi", maLichThi) };
             DatabaseHelper.ExecuteQuery(query, parameters);
         }
+        public List<LichThi> LayDSLichThiTheoDanhGia(string maDanhGia)
+        {
+            string query = "SELECT * FROM LichThi WHERE MaDanhGia = @MaDanhGia AND TrangThai = 'MoDangKy'";
+            var parameters = new[] { new MySqlParameter("@MaDanhGia", maDanhGia) };
+            DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
+            var lichThiList = new List<LichThi>();
+
+            foreach (DataRow row in result.Rows)
+            {
+                lichThiList.Add(new LichThi
+                {
+                    MaLichThi = row["MaLichThi"].ToString(),
+                    MaDanhGia = row["MaDanhGia"].ToString(),
+                    MaPhongThi = row["MaPhongThi"].ToString(),
+                    NgayThi = Convert.ToDateTime(row["NgayThi"]),
+                    GioThi = TimeSpan.Parse(row["GioThi"].ToString()),
+                    SoLuongMax = Convert.ToInt32(row["SoLuongMax"]),
+                    SoLuongDK = Convert.ToInt32(row["SoLuongDK"]),
+                    TrangThai = row["TrangThai"].ToString()
+                });
+            }
+            return lichThiList;
+        }
+        public void CapNhatSoLuongDK(string maLichThi)
+        {
+            string query = "UPDATE LichThi SET SoLuongDK = SoLuongDK + 1 WHERE MaLichThi = @MaLichThi";
+            var parameters = new[]
+            {
+                new MySqlParameter("@MaLichThi", maLichThi)
+            };
+            DatabaseHelper.ExecuteQuery(query, parameters);
+        }
     }
 }

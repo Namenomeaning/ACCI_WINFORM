@@ -37,5 +37,10 @@ namespace ACCI_WINFORM.Forms
             new MainForm().Show();
             this.Close();
         }
+
+        private void TemplateForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
