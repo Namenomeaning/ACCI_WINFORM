@@ -5,7 +5,7 @@ namespace ACCI_WINFORM.Utils
 {
     public static class DatabaseHelper
     {
-        private static readonly string connectionString = "Server=192.168.1.135;Port=33306;Database=ACCI;User=root;Password=root;";
+        private static readonly string connectionString = "Server=localhost;Port=33306;Database=ACCI;User=root;Password=root;";
 
         private static MySqlConnection CreateAndOpenConnection()
         {
@@ -48,6 +48,32 @@ namespace ACCI_WINFORM.Utils
             }
 
             return dataTable;
+        }
+        public static int ExecuteNonQuery(string query, params MySqlParameter[] parameters)
+        {
+            MySqlConnection connection = null;
+            int rowsAffected = 0;
+
+            try
+            {
+                connection = CreateAndOpenConnection();
+                using var command = new MySqlCommand(query, connection);
+
+                if (parameters != null)
+                    command.Parameters.AddRange(parameters);
+
+                rowsAffected = command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi thực thi lệnh: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                CloseConnection(connection);
+            }
+
+            return rowsAffected;
         }
     }
 }

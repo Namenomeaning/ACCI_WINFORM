@@ -27,12 +27,14 @@ namespace ACCI_WINFORM
                 case "TiepNhan":
                     AddButton("Lập Phiếu Đăng Ký", () => new DangKyForm().Show());
                     AddButton("Tra Cứu Phiếu Đăng Ký", () => new TemplateForm().Show());
+                    AddButton("Tra Cứu Chứng Chỉ", () => new TraCuuChungChiForm().Show());
+
                     break;
                 case "KeToan":
                     AddButton("Quản Lý Hóa Đơn", () => new TemplateForm().Show());
                     break;
                 case "NhapLieu":
-                    AddButton("Nhập Kết Quả Thi", () => new TemplateForm().Show());
+                    AddButton("Nhập Kết Quả Thi", () => new NhapKetQuaThiForm().Show());
                     break;
             }
         }

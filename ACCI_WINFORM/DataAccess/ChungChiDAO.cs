@@ -29,10 +29,10 @@ namespace ACCI_WINFORM.DataAccess
             DatabaseHelper.ExecuteQuery(query, parameters);
         }
 
-        public ChungChi LayChungChi(string maChungChi)
+        public ChungChi LayChungChi(string soHieu)
         {
-            string query = "SELECT * FROM ChungChi WHERE MaChungChi = @MaChungChi";
-            var parameters = new[] { new MySqlParameter("@MaChungChi", maChungChi) };
+            string query = "SELECT * FROM ChungChi WHERE SoHieu = @SoHieu";
+            var parameters = new[] { new MySqlParameter("@SoHieu", soHieu) };
             DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
 
             if (result.Rows.Count == 0)
@@ -41,7 +41,6 @@ namespace ACCI_WINFORM.DataAccess
             var row = result.Rows[0];
             return new ChungChi
             {
-                MaChungChi = row["MaChungChi"].ToString(),
                 SoHieu = row["SoHieu"].ToString(),
                 MaPhieuDK = row["MaPhieuDK"].ToString(),
                 ThuTu = Convert.ToInt32(row["ThuTu"]),
@@ -66,7 +65,6 @@ namespace ACCI_WINFORM.DataAccess
             {
                 chungChiList.Add(new ChungChi
                 {
-                    MaChungChi = row["MaChungChi"].ToString(),
                     SoHieu = row["SoHieu"].ToString(),
                     MaPhieuDK = row["MaPhieuDK"].ToString(),
                     ThuTu = Convert.ToInt32(row["ThuTu"]),
@@ -85,10 +83,9 @@ namespace ACCI_WINFORM.DataAccess
 
         public void CapNhatChungChi(ChungChi chungChi)
         {
-            string query = "UPDATE ChungChi SET SoHieu = @SoHieu, MaPhieuDK = @MaPhieuDK, ThuTu = @ThuTu, MaThiSinh = @MaThiSinh, NgayCap = @NgayCap, NgayHetHan = @NgayHetHan, PhuongThucNhan = @PhuongThucNhan, DiaChiNhan = @DiaChiNhan, NgayNhan = @NgayNhan, TrangThaiNhan = @TrangThaiNhan, MaNV_CapNhat = @MaNV_CapNhat WHERE MaChungChi = @MaChungChi";
+            string query = "UPDATE ChungChi SET MaPhieuDK = @MaPhieuDK, ThuTu = @ThuTu, MaThiSinh = @MaThiSinh, NgayCap = @NgayCap, NgayHetHan = @NgayHetHan, PhuongThucNhan = @PhuongThucNhan, DiaChiNhan = @DiaChiNhan, NgayNhan = @NgayNhan, TrangThaiNhan = @TrangThaiNhan, MaNV_CapNhat = @MaNV_CapNhat WHERE SoHieu = @SoHieu";
             var parameters = new[]
             {
-                new MySqlParameter("@MaChungChi", chungChi.MaChungChi),
                 new MySqlParameter("@SoHieu", chungChi.SoHieu),
                 new MySqlParameter("@MaPhieuDK", chungChi.MaPhieuDK),
                 new MySqlParameter("@ThuTu", chungChi.ThuTu),
@@ -104,11 +101,53 @@ namespace ACCI_WINFORM.DataAccess
             DatabaseHelper.ExecuteQuery(query, parameters);
         }
 
-        public void XoaChungChi(string maChungChi)
+        public void XoaChungChi(string soHieu)
         {
-            string query = "DELETE FROM ChungChi WHERE MaChungChi = @MaChungChi";
-            var parameters = new[] { new MySqlParameter("@MaChungChi", maChungChi) };
+            string query = "DELETE FROM ChungChi WHERE SoHieu = @SoHieu";
+            var parameters = new[] { new MySqlParameter("@SoHieu", soHieu) };
             DatabaseHelper.ExecuteQuery(query, parameters);
+        }
+
+        public bool CapNhatTrangThaiNhan(string soHieu, string trangThaiNhan, string nv)
+        {
+            string query = @"UPDATE ChungChi 
+                            SET TrangThaiNhan = @TrangThaiNhan, 
+                                NgayNhan = @NgayNhan,
+                                MaNV_CapNhat = @NV,
+                                PhuongThucNhan = @PhuongThuc,
+                                DiaChiNhan = @DiaChi
+                            WHERE SoHieu = @SoHieu";
+            var parameters = new[]
+            {
+                new MySqlParameter("@TrangThaiNhan", trangThaiNhan),
+                new MySqlParameter("@NgayNhan", trangThaiNhan == "DaNhan" ? DateTime.Now : (object)DBNull.Value),
+                new MySqlParameter("@SoHieu", soHieu),
+                new MySqlParameter("@NV", nv),
+                new MySqlParameter("@PhuongThuc", "TaiTT"),
+                new MySqlParameter("@DiaChi", "123 Lê Lợi")
+            };
+            try
+            {
+                DatabaseHelper.ExecuteQuery(query, parameters);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in CapNhatTrangThaiNhan: {ex.Message}");
+                return false;
+            }
+        }
+        public DataRow LayChungChi(string maPhieuDK, int thuTu)
+        {
+            string query = "SELECT SoHieu, NgayCap, NgayNhan, TrangThaiNhan " +
+                           "FROM ChungChi WHERE MaPhieuDK = @MaPhieuDK AND ThuTu = @ThuTu";
+            var parameters = new[]
+            {
+            new MySqlParameter("@MaPhieuDK", maPhieuDK),
+            new MySqlParameter("@ThuTu", thuTu)
+        };
+            DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
         }
     }
 }

@@ -78,5 +78,48 @@ namespace ACCI_WINFORM.DataAccess
             var parameters = new[] { new MySqlParameter("@MaThiSinh", maThiSinh) };
             DatabaseHelper.ExecuteQuery(query, parameters);
         }
+
+        public DataTable LayThiSinhTheoTieuChi(string maThiSinh, string hoTen)
+        {
+            string query = "SELECT MaThiSinh, HoTen FROM ThiSinh WHERE 1=1";
+            if (!string.IsNullOrEmpty(maThiSinh))
+            {
+                query += " AND MaThiSinh LIKE @MaThiSinh";
+            }
+            if (!string.IsNullOrEmpty(hoTen))
+            {
+                query += " AND HoTen LIKE @HoTen";
+            }
+            var parameters = new[]
+            {
+            new MySqlParameter("@MaThiSinh", $"%{maThiSinh}%"),
+            new MySqlParameter("@HoTen", $"%{hoTen}%")
+        };
+            return DatabaseHelper.ExecuteQuery(query, parameters);
+        }
+        public DataTable LayDanhSachThiSinhTheoMa(List<string> maThiSinhList)
+        {
+            DataTable dt = new DataTable();
+            dt.Columns.Add("MaThiSinh", typeof(string));
+            dt.Columns.Add("HoTen", typeof(string));
+
+            if (maThiSinhList == null || maThiSinhList.Count == 0)
+            {
+                return dt; // Return empty table if list is null or empty
+            }
+
+            // Build parameterized query with indexed parameters
+            var parameters = new List<MySqlParameter>();
+            string[] paramPlaceholders = new string[maThiSinhList.Count];
+            for (int i = 0; i < maThiSinhList.Count; i++)
+            {
+                paramPlaceholders[i] = $"@TS{i}";
+                parameters.Add(new MySqlParameter($"@TS{i}", maThiSinhList[i]));
+            }
+
+            string query = $"SELECT MaThiSinh, HoTen FROM ThiSinh WHERE MaThiSinh IN ({string.Join(",", paramPlaceholders)})";
+
+            return DatabaseHelper.ExecuteQuery(query, parameters.ToArray());
+        }
     }
 }
