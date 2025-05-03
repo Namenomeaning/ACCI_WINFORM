@@ -1,4 +1,4 @@
-﻿using ACCI_WINFORM.DataAccess;
+﻿using ACCI_WINFORM.BUS;
 using ACCI_WINFORM.Models;
 using System;
 using System.Windows.Forms;
@@ -7,11 +7,11 @@ namespace ACCI_WINFORM.Forms
 {
     public partial class KiemTraGiaHanForm : Form
     {
-        private readonly ThiSinhDAO thiSinhDAO = new ThiSinhDAO();
-        private readonly PhieuDKDAO phieuDKDAO = new PhieuDKDAO();
-        private readonly ChiTietPhieuDKDAO chiTietPhieuDKDAO = new ChiTietPhieuDKDAO();
-        private readonly LichThiDAO lichThiDAO = new LichThiDAO();
-        private readonly DanhGiaDAO danhGiaDAO = new DanhGiaDAO();
+        private readonly ThiSinhBUS thiSinhDAO = new ThiSinhBUS();
+        private readonly PhieuDKBUS phieuDKDAO = new PhieuDKBUS();
+        private readonly ChiTietPhieuDKBUS chiTietPhieuDKDAO = new ChiTietPhieuDKBUS();
+        private readonly LichThiBUS lichThiDAO = new LichThiBUS();
+        private readonly DanhGiaBUS danhGiaDAO = new DanhGiaBUS();
 
         private string maPhieuDK;
         private string maLichThiCu;
@@ -78,7 +78,7 @@ namespace ACCI_WINFORM.Forms
                 }
 
                 // Get PhieuDK and ChiTietPhieuDK
-                var chiTietPhieuDK = chiTietPhieuDKDAO.LayChiTietPhieuDKTheoMaThiSinh(thiSinh.MaThiSinh);
+                var chiTietPhieuDK = chiTietPhieuDKDAO.LayChiTietPhieuDKDangKyTheoMaThiSinh(thiSinh.MaThiSinh);
                 if (chiTietPhieuDK == null)
                 {
                     MessageBox.Show("Không tìm thấy phiếu đăng ký cho thí sinh này!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);

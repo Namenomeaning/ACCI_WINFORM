@@ -1,4 +1,4 @@
-﻿using ACCI_WINFORM.DataAccess;
+﻿using ACCI_WINFORM.BUS;
 using ACCI_WINFORM.Models;
 using System;
 using System.Collections.Generic;
@@ -9,12 +9,12 @@ namespace ACCI_WINFORM.Forms
 {
     public partial class DangKyForm : Form
     {
-        private readonly KhachHangDAO khachHangDAO = new KhachHangDAO();
-        private readonly ThiSinhDAO thiSinhDAO = new ThiSinhDAO();
-        private readonly PhieuDKDAO phieuDKDAO = new PhieuDKDAO();
-        private readonly ChiTietPhieuDKDAO chiTietPhieuDKDAO = new ChiTietPhieuDKDAO();
-        private readonly LichThiDAO lichThiDAO = new LichThiDAO();
-        private readonly DanhGiaDAO danhGiaDAO = new DanhGiaDAO();
+        private readonly KhachHangBUS khachHangDAO = new KhachHangBUS();
+        private readonly ThiSinhBUS thiSinhDAO = new ThiSinhBUS();
+        private readonly PhieuDKBUS phieuDKDAO = new PhieuDKBUS();
+        private readonly ChiTietPhieuDKBUS chiTietPhieuDKDAO = new ChiTietPhieuDKBUS();
+        private readonly LichThiBUS lichThiDAO = new LichThiBUS();
+        private readonly DanhGiaBUS danhGiaDAO = new DanhGiaBUS();
 
         private List<ThiSinh> danhSachThiSinh = new List<ThiSinh>();
         private string maNV_TiepNhan = "NV001"; // Giả định mã nhân viên tiếp nhận
@@ -48,7 +48,7 @@ namespace ACCI_WINFORM.Forms
             if (cbLoaiDanhGia.SelectedValue != null)
             {
                 string maDanhGia = cbLoaiDanhGia.SelectedValue.ToString();
-                var danhSachLichThi = lichThiDAO.LayDSLichThiTheoDanhGia(maDanhGia);
+                var danhSachLichThi = lichThiDAO.LayDSLichThiMoDangKyTheoDanhGia(maDanhGia);
                 cbLichThi.DataSource = danhSachLichThi;
                 cbLichThi.DisplayMember = "NgayThi";
                 cbLichThi.ValueMember = "MaLichThi";
@@ -80,7 +80,7 @@ namespace ACCI_WINFORM.Forms
             if (cbLoaiDanhGia.SelectedValue != null)
             {
                 string maDanhGia = cbLoaiDanhGia.SelectedValue.ToString();
-                var danhSachLichThi = lichThiDAO.LayDSLichThiTheoDanhGia(maDanhGia);
+                var danhSachLichThi = lichThiDAO.LayDSLichThiMoDangKyTheoDanhGia(maDanhGia);
                 cbLichThi.DataSource = danhSachLichThi;
                 cbLichThi.DisplayMember = "NgayThi";
                 cbLichThi.ValueMember = "MaLichThi";
@@ -235,7 +235,7 @@ namespace ACCI_WINFORM.Forms
                     };
                     chiTietPhieuDKDAO.ThemChiTietPhieuDK(chiTiet);
 
-                    lichThiDAO.CapNhatSoLuongDK(maLichThi);
+                    lichThiDAO.TangSoLuongDK(maLichThi);
                 }
                 else
                 {

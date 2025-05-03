@@ -1,4 +1,4 @@
-﻿using ACCI_WINFORM.DataAccess;
+﻿using ACCI_WINFORM.BUS;
 using ACCI_WINFORM.Models;
 using ACCI_WINFORM.Utils;
 using MySqlConnector;
@@ -16,10 +16,10 @@ namespace ACCI_WINFORM.Forms
         private readonly string maLichThiCu;
         private readonly bool truongHopDacBiet;
 
-        private readonly ThiSinhDAO thiSinhDAO = new ThiSinhDAO();
-        private readonly ChiTietPhieuDKDAO chiTietPhieuDKDAO = new ChiTietPhieuDKDAO();
-        private readonly LichThiDAO lichThiDAO = new LichThiDAO();
-        private readonly DanhGiaDAO danhGiaDAO = new DanhGiaDAO();
+        private readonly ThiSinhBUS thiSinhDAO = new ThiSinhBUS();
+        private readonly ChiTietPhieuDKBUS chiTietPhieuDKDAO = new ChiTietPhieuDKBUS();
+        private readonly LichThiBUS lichThiDAO = new LichThiBUS();
+        private readonly DanhGiaBUS danhGiaDAO = new DanhGiaBUS();
 
         private ChiTietPhieuDK chiTietPhieuDK;
         private LichThi lichThiCu;
@@ -101,7 +101,7 @@ namespace ACCI_WINFORM.Forms
         {
             try
             {
-                var lichThiList = lichThiDAO.LayDSLichThiTheoDanhGia(maDanhGia)
+                var lichThiList = lichThiDAO.LayDSLichThiMoDangKyTheoDanhGia(maDanhGia)
                     .Where(lt => lt.MaLichThi != maLichThiCu &&
                                  (lt.NgayThi.Date > DateTime.Now.Date ||
                                   (lt.NgayThi.Date == DateTime.Now.Date && lt.GioThi > DateTime.Now.TimeOfDay)) &&
@@ -183,7 +183,7 @@ namespace ACCI_WINFORM.Forms
                 DatabaseHelper.ExecuteQuery(queryChiTietPhieuDK, parametersChiTietPhieuDK);
 
                 // 4. Update SoLuongDK for old and new LichThi
-                lichThiDAO.CapNhatSoLuongDK(maLichThiMoi); // Increment SoLuongDK for new LichThi
+                lichThiDAO.TangSoLuongDK(maLichThiMoi); // Increment SoLuongDK for new LichThi
                 string queryDecreaseSoLuongDK = "UPDATE LichThi SET SoLuongDK = SoLuongDK - 1 WHERE MaLichThi = @MaLichThi AND SoLuongDK > 0";
                 var parametersDecrease = new[] { new MySqlParameter("@MaLichThi", maLichThiCu) };
                 DatabaseHelper.ExecuteQuery(queryDecreaseSoLuongDK, parametersDecrease); // Decrement SoLuongDK for old LichThi

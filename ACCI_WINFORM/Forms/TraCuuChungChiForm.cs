@@ -1,4 +1,4 @@
-﻿using ACCI_WINFORM.DataAccess;
+﻿using ACCI_WINFORM.BUS;
 using ACCI_WINFORM.Models;
 using System;
 using System.Data;
@@ -11,10 +11,10 @@ namespace ACCI_WINFORM.Forms
     public partial class TraCuuChungChiForm : Form
     {
         private readonly NhanVien _nhanVien;
-        private readonly ThiSinhDAO thiSinhDAO = new ThiSinhDAO();
-        private readonly ChiTietPhieuDKDAO chiTietPhieuDKDAO = new ChiTietPhieuDKDAO();
-        private readonly LichThiDAO lichThiDAO = new LichThiDAO();
-        private readonly ChungChiDAO chungChiDAO = new ChungChiDAO();
+        private readonly ThiSinhBUS thiSinhDAO = new ThiSinhBUS();
+        private readonly ChiTietPhieuDKBUS chiTietPhieuDKDAO = new ChiTietPhieuDKBUS();
+        private readonly LichThiBUS lichThiDAO = new LichThiBUS();
+        private readonly ChungChiBUS chungChiDAO = new ChungChiBUS();
 
         public TraCuuChungChiForm()
         {
@@ -91,22 +91,23 @@ namespace ACCI_WINFORM.Forms
                 string currentMaThiSinh = rowThiSinh["MaThiSinh"].ToString();
 
                 // Lấy chi tiết phiếu đăng ký từ ChiTietPhieuDKDAO
-                DataTable dtChiTiet = chiTietPhieuDKDAO.LayChiTietTheoThiSinh(currentMaThiSinh, soBaoDanh);
+                DataTable dtChiTiet = chiTietPhieuDKDAO.LayChiTietTheoThiSinhVaSoBaoDanh(currentMaThiSinh, soBaoDanh);
                 foreach (DataRow rowChiTiet in dtChiTiet.Rows)
                 {
                     string maLichThi = rowChiTiet["MaLichThi"].ToString();
 
                     // Lấy lịch thi từ LichThiDAO
-                    DataRow rowLichThi = lichThiDAO.LayLichThi2(maLichThi);
-                    if (rowLichThi != null)
+                    DateTime? ngThi = lichThiDAO.LayNgayThi(maLichThi);
+                    if (ngThi.HasValue)
                     {
-                        DateTime lichThiNgayThi = Convert.ToDateTime(rowLichThi["NgayThi"]);
+                        DateTime lichThiNgayThi = ngThi.Value;
                         if (dtNgayThi == null || lichThiNgayThi.Date == dtNgayThi.Value.Date)
                         {
                             // Lấy chứng chỉ từ ChungChiDAO
                             string maPhieuDK = rowChiTiet["MaPhieuDK"].ToString();
                             int thuTu = Convert.ToInt32(rowChiTiet["ThuTu"]);
-                            DataRow rowChungChi = chungChiDAO.LayChungChi(maPhieuDK, thuTu);
+                            ChungChi rowChungChi = chungChiDAO.LayChungChi(maPhieuDK, thuTu);
+
 
                             // Thêm dòng vào dtResult
                             DataRow newRow = dtResult.NewRow();
@@ -117,10 +118,10 @@ namespace ACCI_WINFORM.Forms
                             newRow["KetQuaChamThi"] = rowChiTiet["KetQua"] == DBNull.Value ? (object)DBNull.Value : rowChiTiet["KetQua"];
                             if (rowChungChi != null)
                             {
-                                newRow["MaChungChi"] = rowChungChi["SoHieu"];
-                                newRow["NgayCap"] = rowChungChi["NgayCap"];
-                                newRow["NgayNhan"] = rowChungChi["NgayNhan"] == DBNull.Value ? (object)DBNull.Value : rowChungChi["NgayNhan"];
-                                newRow["TrangThaiNhan"] = rowChungChi["TrangThaiNhan"];
+                                newRow["MaChungChi"] = rowChungChi.SoHieu;
+                                newRow["NgayCap"] = rowChungChi.NgayCap;
+                                newRow["NgayNhan"] = rowChungChi.NgayNhan == null ? (object)DBNull.Value : rowChungChi.NgayNhan;
+                                newRow["TrangThaiNhan"] = rowChungChi.TrangThaiNhan;
                             }
                             else
                             {
@@ -169,7 +170,7 @@ namespace ACCI_WINFORM.Forms
                 return;
             }
 
-            bool success = chungChiDAO.CapNhatTrangThaiNhan(soHieu, trangThaiNhan, _nhanVien.MaNhanVien);
+            bool success = chungChiDAO.CapNhatTrangThaiNhanTaiQuay(soHieu, _nhanVien.MaNhanVien);
             if (success)
             {
                 MessageBox.Show("Cập nhật trạng thái thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);

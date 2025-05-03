@@ -3,7 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using MySqlConnector;
-using ACCI_WINFORM.DataAccess;
+using ACCI_WINFORM.BUS;
 using ACCI_WINFORM.Models;
 using ACCI_WINFORM.Utils;
 
@@ -12,11 +12,11 @@ namespace ACCI_WINFORM.Forms
     public partial class NhapKetQuaThiForm : Form
     {
         private readonly NhanVien _nhanVien;
-        private readonly LichThiDAO lichThiDAO = new LichThiDAO();
-        private readonly ThiSinhDAO thiSinhDAO = new ThiSinhDAO();
-        private readonly ChiTietPhieuDKDAO chiTietPhieuDKDAO = new ChiTietPhieuDKDAO();
-        private readonly DanhGiaDAO danhGiaDAO = new DanhGiaDAO();
-        private readonly ChungChiDAO chungChiDAO = new ChungChiDAO();
+        private readonly LichThiBUS lichThiDAO = new LichThiBUS();
+        private readonly ThiSinhBUS thiSinhDAO = new ThiSinhBUS();
+        private readonly ChiTietPhieuDKBUS chiTietPhieuDKDAO = new ChiTietPhieuDKBUS();
+        private readonly DanhGiaBUS danhGiaDAO = new DanhGiaBUS();
+        private readonly ChungChiBUS chungChiDAO = new ChungChiBUS();
         public NhapKetQuaThiForm()
         {
             InitializeComponent();
@@ -57,7 +57,7 @@ namespace ACCI_WINFORM.Forms
             DataTable thiSinhData = thiSinhDAO.LayDanhSachThiSinhTheoMa(maThiSinhList);
 
             // Gọi ChiTietPhieuDKDAO với thiSinhData
-            DataTable dt = chiTietPhieuDKDAO.LayDanhSachThiSinhTheoLichThi(maLichThi, thiSinhData);
+            DataTable dt = chiTietPhieuDKDAO.LayDanhSachThiSinhTheoLichThi(maLichThi);
             if (dt.Rows.Count == 0)
             {
                 lblTrangThai.Text = "Không tìm thấy thí sinh cho mã lịch thi này.";
@@ -182,7 +182,7 @@ namespace ACCI_WINFORM.Forms
                         DiaChiNhan = null,
                         NgayNhan = null,
                         TrangThaiNhan = "ChuaNhan",
-                        MaNV_CapNhat = null
+                        MaNV_CapNhat = _nhanVien.MaNhanVien
                     };
 
                     // Thêm chứng chỉ vào cơ sở dữ liệu
