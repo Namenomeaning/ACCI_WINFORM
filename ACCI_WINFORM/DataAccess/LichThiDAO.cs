@@ -126,5 +126,12 @@ namespace ACCI_WINFORM.DataAccess
             };
             DatabaseHelper.ExecuteQuery(query, parameters);
         }
+        public DataRow LayLichThi2(string maLichThi)
+        {
+            string query = "SELECT NgayThi FROM LichThi WHERE MaLichThi = @MaLichThi";
+            var parameters = new[] { new MySqlParameter("@MaLichThi", maLichThi) };
+            DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+            return dt.Rows.Count > 0 ? dt.Rows[0] : null;
+        }
     }
 }

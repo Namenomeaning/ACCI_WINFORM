@@ -195,7 +195,7 @@ CREATE TABLE ChungChi (
   DiaChiNhan      NVARCHAR(200) NULL,
   NgayNhan        DATE NULL,
   TrangThaiNhan   ENUM('ChuaNhan','DaNhan') NOT NULL,
-  MaNV_CapNhat    VARCHAR(10) NOT NULL
+  MaNV_CapNhat    VARCHAR(10) NULL
 );
 
 -- =========================================
@@ -466,7 +466,7 @@ DELIMITER ;
 INSERT INTO NhanVien (HoTen, VaiTro, TrangThai) VALUES
 ('Nguyễn Văn A', 'TiepNhan', 'DangLam'),
 ('Trần Thị B', 'KeToan', 'DangLam'),
-('Lê Văn C', 'NhapLieu', 'NghiViec');
+('Lê Văn C', 'NhapLieu', 'DangLam');
 
 -- 2. ThongTinDangNhap
 INSERT INTO ThongTinDangNhap (TenDangNhap, MatKhauHash, MaNhanVien) VALUES
@@ -594,3 +594,4 @@ SET TrangThaiNhan = 'DaNhan',
 WHERE MaChungChi = 'CC1';
 
 SET SQL_SAFE_UPDATES = 1;
+

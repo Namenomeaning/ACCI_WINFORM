@@ -71,11 +71,25 @@ namespace ACCI_WINFORM.DataAccess
             DatabaseHelper.ExecuteQuery(query, parameters);
         }
 
+        public string LayMaNhanVienTheoTenDangNhap(string tenDangNhap)
+        {
+            string query = "SELECT MaNhanVien FROM ThongTinDangNhap WHERE TenDangNhap = @TenDangNhap";
+            var parameters = new[] { new MySqlParameter("@TenDangNhap", tenDangNhap) };
+            DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
+
+            if (result.Rows.Count > 0)
+            {
+                return result.Rows[0]["MaNhanVien"].ToString();
+            }
+            return null; // Return null if no user is found
+        }
+
         public void XoaThongTinDangNhap(string maThongTinDangNhap)
         {
             string query = "DELETE FROM ThongTinDangNhap WHERE MaThongTinDangNhap = @MaThongTinDangNhap";
             var parameters = new[] { new MySqlParameter("@MaThongTinDangNhap", maThongTinDangNhap) };
             DatabaseHelper.ExecuteQuery(query, parameters);
         }
+
     }
 }
