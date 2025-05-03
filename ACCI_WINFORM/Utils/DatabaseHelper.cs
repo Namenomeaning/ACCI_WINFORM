@@ -8,7 +8,7 @@ namespace ACCI_WINFORM.Utils
         private static readonly string connectionString = "Server=localhost;Port=33306;Database=ACCI;User=root;Password=root;";
 
         private static MySqlConnection CreateAndOpenConnection()
-        {
+        {   
             var connection = new MySqlConnection(connectionString);
             connection.Open();
             return connection;
