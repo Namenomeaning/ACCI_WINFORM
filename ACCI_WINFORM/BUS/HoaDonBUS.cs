@@ -11,64 +11,76 @@ namespace ACCI_WINFORM.BUS
     {
         private HoaDonDAO hoaDonDAO = new HoaDonDAO();
         private ChiTietHoaDonBUS chiTietHoaDonBUS = new ChiTietHoaDonBUS(); // Dependency for details
+        private DanhGiaBUS danhGiaBUS = new DanhGiaBUS();
         // Add dependencies for UuDaiBUS if needed for validation/calculation
-
-        public bool ThemHoaDon(HoaDon hoaDon, List<ChiTietHoaDon> chiTietList)
+        public string ThemHoaDon(string maPhieuDK, string maNhanVien)
         {
-            // --- Business Logic ---
-            // 1. Validate HoaDon and ChiTietHoaDon items
-            if (hoaDon == null || chiTietList == null || chiTietList.Count == 0) return false;
-            // Add more validation: MaNV_KeToan exists? MaPhieuDK or MaPhieuGiaHan provided?
+            // Lấy danh sách chi tiết phiếu đăng ký
+            var chiTietPhieuDKBus = new ChiTietPhieuDKBUS();
+            var danhSachChiTiet = chiTietPhieuDKBus.LayDSChiTietPhieuDK(maPhieuDK);
 
-            // 2. Calculate totals based on details
-            hoaDon.TongTienGoc = chiTietList.Sum(ct => ct.SoLuong * ct.DonGia);
-            // 3. Apply discount (requires fetching UuDai info if MaUuDai is provided)
-            hoaDon.SoTienGiam = TinhTienGiam(hoaDon.MaUuDai, hoaDon.TongTienGoc); // Implement this helper
-            hoaDon.TongThu = hoaDon.TongTienGoc - hoaDon.SoTienGiam;
-
-            // 4. Set initial state / defaults
-            hoaDon.NgayLap = DateTime.Now;
-            hoaDon.TrangThaiTT = "ChuaThanhToan"; // Example initial state
-            hoaDon.NgayThanhToan = null;
-
-
-            // --- Database Operations (should be in a transaction) ---
-            // Ideally, use a transaction to ensure atomicity
-            // Transaction handling might be better placed in a Service layer above BUS,
-            // or DatabaseHelper needs transaction support.
-            // For simplicity here, we proceed without explicit transaction management shown.
-
-            int hoaDonResult = hoaDonDAO.ThemHoaDon(hoaDon);
-            if (hoaDonResult <= 0) return false; // Failed to insert HoaDon header
-
-            // Assume MaHoaDon is auto-generated and needs to be retrieved.
-            // This requires DAO.ThemHoaDon to return the ID, or another call to fetch it.
-            // string newMaHoaDon = ...; // Get the new MaHoaDon
-            // hoaDon.MaHoaDon = newMaHoaDon; // Assign it back for details
-
-            // Placeholder: Assuming MaHoaDon is manually set or retrieved somehow before this point
-            if (string.IsNullOrWhiteSpace(hoaDon.MaHoaDon))
+            if (danhSachChiTiet == null || danhSachChiTiet.Count == 0)
             {
-                // Handle error - cannot add details without parent ID
-                // Rollback if using transactions
-                return false;
+                return null; // Không có chi tiết để tạo hóa đơn
             }
 
+            // Tính tổng tiền dựa trên thông tin đánh giá
+            decimal tongTienGoc = 0;
+            var chiTietHoaDonList = new List<ChiTietHoaDon>();
 
-            // 5. Add Details
-            foreach (var chiTiet in chiTietList)
+            foreach (var chiTiet in danhSachChiTiet)
             {
-                chiTiet.MaHoaDon = hoaDon.MaHoaDon; // Link detail to header
-                if (!chiTietHoaDonBUS.ThemChiTietHoaDon(chiTiet))
+                var lichThiBus = new LichThiBUS();
+                var lichThi = lichThiBus.LayLichThi(chiTiet.MaLichThi);
+
+                if (lichThi != null)
                 {
-                    // Handle error: Failed to insert a detail
-                    // Rollback transaction if used
-                    // Clean up previously inserted details? Or rely on transaction rollback.
-                    return false;
+                    var danhGia = danhGiaBUS.LayDanhGia(lichThi.MaDanhGia);
+                    if (danhGia != null)
+                    {
+                        var chiTietHoaDon = new ChiTietHoaDon
+                        {
+                            MaDanhGia = danhGia.MaDanhGia,
+                            SoLuong = 1, // Mỗi chi tiết phiếu đăng ký tương ứng với 1 lượt đăng ký
+                            DonGia = danhGia.DonGia
+                        };
+                        chiTietHoaDon.ThanhTien = chiTietHoaDon.SoLuong * chiTietHoaDon.DonGia;
+                        tongTienGoc += chiTietHoaDon.ThanhTien;
+
+                        chiTietHoaDonList.Add(chiTietHoaDon);
+                    }
                 }
             }
 
-            return true; // Success
+            // Tạo đối tượng hóa đơn
+            var hoaDon = new HoaDon
+            {
+                MaPhieuDK = maPhieuDK,
+                MaNV_KeToan = maNhanVien,
+                NgayLap = DateTime.Now,
+                TongTienGoc = tongTienGoc,
+                SoTienGiam = 0, // Không áp dụng giảm giá
+                TongThu = tongTienGoc,
+                TrangThaiTT = "ChuaThanhToan"
+            };
+
+            // Gọi DAO để thêm hóa đơn
+            if (hoaDonDAO.ThemHoaDon(hoaDon) > 0)
+            {
+                // Lấy mã hóa đơn vừa tạo
+                var maHoaDon = hoaDon.MaHoaDon;
+
+                // Thêm chi tiết hóa đơn
+                foreach (var chiTietHoaDon in chiTietHoaDonList)
+                {
+                    chiTietHoaDon.MaHoaDon = maHoaDon;
+                    chiTietHoaDonBUS.ThemChiTietHoaDon(chiTietHoaDon);
+                }
+
+                return maHoaDon; // Trả về mã hóa đơn
+            }
+
+            return null; // Thêm hóa đơn thất bại
         }
 
         public HoaDon LayHoaDon(string maHoaDon)
@@ -193,6 +205,17 @@ namespace ACCI_WINFORM.BUS
             return 0; // Default if type not handled
         }
 
+        // Kiểm tra phiếu đăng ký đã có hóa đơn hay chưa
+        public bool KiemTraPhieuDKDaCoHoaDon(string maPhieuDK)
+        {
+            return hoaDonDAO.KiemTraPhieuDKDaCoHoaDon(maPhieuDK);
+        }
+
+        // Lấy hóa đơn theo mã phiếu đăng ký
+        public HoaDon LayHoaDonTheoPhieuDK(string maPhieuDK)
+        {
+            return hoaDonDAO.LayHoaDonTheoPhieuDK(maPhieuDK);
+        }
 
         private HoaDon MapDataRowToHoaDon(DataRow row)
         {
