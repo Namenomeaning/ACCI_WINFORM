@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq; // Required for LINQ operations if joining in BUS
+using ACCI_WINFORM.Utils;
 
 namespace ACCI_WINFORM.BUS
 {
@@ -149,6 +150,11 @@ namespace ACCI_WINFORM.BUS
             return chiTietPhieuDKDAO.LayChiTietTheoThiSinhVaSoBaoDanh(maThiSinh, soBaoDanh);
         }
 
+        public DataTable LayChiTietTheoSoBaoDanh(string soBaoDanh)
+        {
+            return chiTietPhieuDKDAO.LayChiTietTheoSoBaoDanh(soBaoDanh);
+        }
+
         // --- Helper Methods ---
         private ChiTietPhieuDK MapDataRowToChiTiet(DataRow row)
         {
@@ -166,6 +172,7 @@ namespace ACCI_WINFORM.BUS
                 MaNV_NhapLieu = row["MaNV_NhapLieu"] != DBNull.Value ? row["MaNV_NhapLieu"].ToString() : null
             };
         }
+
 
         private List<ChiTietPhieuDK> MapDataTableToChiTietList(DataTable dt)
         {

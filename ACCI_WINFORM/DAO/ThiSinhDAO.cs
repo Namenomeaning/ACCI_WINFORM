@@ -56,22 +56,11 @@ namespace ACCI_WINFORM.DAO
             return DatabaseHelper.ExecuteNonQuery(query, parameters);
         }
 
-        public DataTable LayThiSinhTheoTieuChi(string maThiSinh, string hoTen)
+        public DataTable LayThiSinhTheoMa(string maThiSinh)
         {
-            string query = "SELECT MaThiSinh, HoTen FROM ThiSinh WHERE 1=1"; // Base query
-            var parameters = new List<MySqlParameter>();
-
-            if (!string.IsNullOrEmpty(maThiSinh))
-            {
-                query += " AND MaThiSinh LIKE @MaThiSinhPattern";
-                parameters.Add(new MySqlParameter("@MaThiSinhPattern", $"%{maThiSinh}%"));
-            }
-            if (!string.IsNullOrEmpty(hoTen))
-            {
-                query += " AND HoTen LIKE @HoTenPattern";
-                parameters.Add(new MySqlParameter("@HoTenPattern", $"%{hoTen}%"));
-            }
-            return DatabaseHelper.ExecuteQuery(query, parameters.ToArray());
+            string query = "SELECT MaThiSinh, HoTen, NgaySinh FROM ThiSinh WHERE MaThiSinh = @MaThiSinh";
+            var parameters = new[] { new MySqlParameter("@MaThiSinh", maThiSinh) };
+            return DatabaseHelper.ExecuteQuery(query, parameters);
         }
 
         public DataTable LayDanhSachThiSinhTheoMa(List<string> maThiSinhList)
