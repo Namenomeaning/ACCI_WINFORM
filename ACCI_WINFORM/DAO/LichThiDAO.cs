@@ -79,6 +79,12 @@ namespace ACCI_WINFORM.DAO
             var parameters = new[] { new MySqlParameter("@MaLichThi", maLichThi) };
             return DatabaseHelper.ExecuteNonQuery(query, parameters);
         }
+        public int GiamSoLuongDK(string maLichThi)
+        {
+            string query = "UPDATE LichThi SET SoLuongDK = SoLuongDK - 1 WHERE MaLichThi = @MaLichThi AND SoLuongDK > 0";
+            var parameters = new[] { new MySqlParameter("@MaLichThi", maLichThi) };
+            return DatabaseHelper.ExecuteNonQuery(query, parameters);
+        }
 
         public DataTable LayNgayThi(string maLichThi) // Renamed from LayLichThi2 for clarity
         {

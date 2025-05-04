@@ -1,4 +1,4 @@
-﻿using ACCI_WINFORM.DAO; // Added DAO namespace
+﻿using ACCI_WINFORM.DAO;
 using ACCI_WINFORM.Models;
 using System;
 using System.Collections.Generic;
@@ -12,19 +12,29 @@ namespace ACCI_WINFORM.BUS
 
         public bool ThemPhieuGiaHan(PhieuGiaHan phieuGiaHan)
         {
-            // Set defaults before saving?
             phieuGiaHan.NgayYC = DateTime.Now;
-            phieuGiaHan.TrangThai = "ChoXuLy"; // Example initial state
-                                               // MaNV_XuLy should probably be null initially
-            phieuGiaHan.MaNV_XuLy = null;
+            phieuGiaHan.TrangThai = "ChoThanhToan";
+            // Không gán cứng MaNV_XuLy, giá trị đã được truyền từ form
+            if (string.IsNullOrEmpty(phieuGiaHan.MaNV_XuLy))
+            {
+                throw new Exception("Mã nhân viên xử lý không được để trống!");
+            }
 
-            // Validation: MaPhieuDK/ThuTu_CT exists? MaLichThi_Cu/Moi exists?
             return phieuGiaHanDAO.ThemPhieuGiaHan(phieuGiaHan) > 0;
         }
 
         public PhieuGiaHan LayPhieuGiaHan(string maPhieuGiaHan)
         {
             DataTable dt = phieuGiaHanDAO.LayPhieuGiaHan(maPhieuGiaHan);
+            if (dt == null || dt.Rows.Count == 0)
+                return null;
+
+            return MapDataRowToPhieuGiaHan(dt.Rows[0]);
+        }
+
+        public PhieuGiaHan LayPhieuGiaHanTheoMaPhieuDKVaLichThi(string maPhieuDK, string maLichThiCu, string maLichThiMoi)
+        {
+            DataTable dt = phieuGiaHanDAO.LayPhieuGiaHanTheoMaPhieuDKVaLichThi(maPhieuDK, maLichThiCu, maLichThiMoi);
             if (dt == null || dt.Rows.Count == 0)
                 return null;
 
@@ -47,29 +57,29 @@ namespace ACCI_WINFORM.BUS
 
         public bool CapNhatPhieuGiaHan(PhieuGiaHan phieuGiaHan)
         {
-            // Business Logic: If TrangThai changes to "DaXuLy", update related tables?
-            // (e.g., Update MaLichThi in ChiTietPhieuDK, decrement/increment SoLuongDK in LichThi)
-            // This logic should reside here, calling other BUS/DAO classes as needed.
-            // Example:
-            // if (phieuGiaHan.TrangThai == "DaXuLy") {
-            //     // Update ChiTietPhieuDK...
-            //     // Update LichThi counts...
-            // }
             return phieuGiaHanDAO.CapNhatPhieuGiaHan(phieuGiaHan) > 0;
         }
 
         public bool XoaPhieuGiaHan(string maPhieuGiaHan)
         {
-            // Can only delete if not processed?
             var phieu = LayPhieuGiaHan(maPhieuGiaHan);
-            if (phieu != null && phieu.TrangThai != "ChoXuLy") // Example state check
+            if (phieu != null && phieu.TrangThai != "ChoXuLy")
             {
-                return false; // Cannot delete processed request
+                return false;
             }
             return phieuGiaHanDAO.XoaPhieuGiaHan(maPhieuGiaHan) > 0;
         }
 
-        // Helper method to map DataRow to PhieuGiaHan object
+        public decimal LayDonGiaPhiGiaHan(string maPhiGiaHan)
+        {
+            DataTable dt = phieuGiaHanDAO.LayDonGiaPhiGiaHan(maPhiGiaHan);
+            if (dt == null || dt.Rows.Count == 0)
+            {
+                throw new Exception($"Không tìm thấy phí gia hạn với mã {maPhiGiaHan}");
+            }
+            return Convert.ToDecimal(dt.Rows[0]["DonGia"]);
+        }
+
         private PhieuGiaHan MapDataRowToPhieuGiaHan(DataRow row)
         {
             return new PhieuGiaHan
@@ -81,7 +91,6 @@ namespace ACCI_WINFORM.BUS
                 MaLichThi_Moi = row["MaLichThi_Moi"].ToString(),
                 LyDo = row["LyDo"].ToString(),
                 NgayYC = Convert.ToDateTime(row["NgayYC"]),
-                // Handle potential DBNull for MaNV_XuLy if it's allowed
                 MaNV_XuLy = row["MaNV_XuLy"] != DBNull.Value ? row["MaNV_XuLy"].ToString() : null,
                 TrangThai = row["TrangThai"].ToString(),
                 MaPhiGiaHan = row["MaPhiGiaHan"] != DBNull.Value ? row["MaPhiGiaHan"].ToString() : null

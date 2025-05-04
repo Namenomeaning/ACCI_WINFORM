@@ -102,6 +102,15 @@ namespace ACCI_WINFORM.BUS
             return false; // Indicate failure or throw exception
         }
 
+        public bool GiamSoLuongDK(string maLichThi)
+        {
+            LichThi existing = LayLichThi(maLichThi);
+            if (existing != null && existing.SoLuongDK > 0)
+            {
+                return lichThiDAO.GiamSoLuongDK(maLichThi) > 0; // Giả sử DAO có phương thức này
+            }
+            return false;
+        }
         public DateTime? LayNgayThi(string maLichThi)
         {
             DataTable dt = lichThiDAO.LayNgayThi(maLichThi);

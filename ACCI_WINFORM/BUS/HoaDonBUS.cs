@@ -107,6 +107,26 @@ namespace ACCI_WINFORM.BUS
             return null; // Thêm hóa đơn thất bại
         }
 
+        public string ThemHoaDonTheoPhieuGiaHan(HoaDon hoaDon)
+        {
+            if (string.IsNullOrEmpty(hoaDon.MaPhieuGiaHan))
+            {
+                return null;
+            }
+
+            hoaDon.MaPhieuDK = null; // Đảm bảo MaPhieuDK là null khi liên kết với PhieuGiaHan
+
+            if (hoaDonDAO.ThemHoaDon(hoaDon) > 0)
+            {
+                var dt = hoaDonDAO.LayHoaDonMoiNhat(); // Giả sử DAO có phương thức này
+                if (dt != null && dt.Rows.Count > 0)
+                {
+                    return dt.Rows[0]["MaHoaDon"].ToString();
+                }
+            }
+
+            return null;
+        }
         public HoaDon LayHoaDon(string maHoaDon)
         {
             DataTable dt = hoaDonDAO.LayHoaDon(maHoaDon);

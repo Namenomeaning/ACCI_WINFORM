@@ -7,20 +7,22 @@ namespace ACCI_WINFORM.Forms
 {
     public partial class KiemTraGiaHanForm : Form
     {
-        private readonly ThiSinhBUS thiSinhDAO = new ThiSinhBUS();
-        private readonly PhieuDKBUS phieuDKDAO = new PhieuDKBUS();
-        private readonly ChiTietPhieuDKBUS chiTietPhieuDKDAO = new ChiTietPhieuDKBUS();
-        private readonly LichThiBUS lichThiDAO = new LichThiBUS();
-        private readonly DanhGiaBUS danhGiaDAO = new DanhGiaBUS();
+        private readonly ThiSinhBUS thiSinhBus = new ThiSinhBUS();
+        private readonly PhieuDKBUS phieuDKBus = new PhieuDKBUS();
+        private readonly ChiTietPhieuDKBUS chiTietPhieuDKBus = new ChiTietPhieuDKBUS();
+        private readonly LichThiBUS lichThiBus = new LichThiBUS();
+        private readonly DanhGiaBUS danhGiaBus = new DanhGiaBUS();
 
         private string maPhieuDK;
         private string maLichThiCu;
         private int soLanGiaHanConLai;
         private DateTime thoiGianThi;
+        private readonly string maNV;
 
-        public KiemTraGiaHanForm()
+        public KiemTraGiaHanForm(string maNV)
         {
             InitializeComponent();
+            this.maNV = maNV;
             LoadDanhGia();
         }
 
@@ -28,7 +30,7 @@ namespace ACCI_WINFORM.Forms
         {
             try
             {
-                var danhSachDanhGia = danhGiaDAO.LayDSDanhGia();
+                var danhSachDanhGia = danhGiaBus.LayDSDanhGia();
                 if (danhSachDanhGia == null || danhSachDanhGia.Count == 0)
                 {
                     MessageBox.Show("Không tìm thấy danh sách đánh giá!", "Thông Báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -70,7 +72,7 @@ namespace ACCI_WINFORM.Forms
                 }
 
                 // Check if candidate exists using MaThiSinh
-                var thiSinh = thiSinhDAO.LayThiSinh(maThiSinh);
+                var thiSinh = thiSinhBus.LayThiSinh(maThiSinh);
                 if (thiSinh == null)
                 {
                     MessageBox.Show("Không tìm thấy thí sinh với Mã Thí Sinh này!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -78,7 +80,7 @@ namespace ACCI_WINFORM.Forms
                 }
 
                 // Get PhieuDK and ChiTietPhieuDK
-                var chiTietPhieuDK = chiTietPhieuDKDAO.LayChiTietPhieuDKDangKyTheoMaThiSinh(thiSinh.MaThiSinh);
+                var chiTietPhieuDK = chiTietPhieuDKBus.LayChiTietPhieuDKDangKyTheoMaThiSinh(thiSinh.MaThiSinh);
                 if (chiTietPhieuDK == null)
                 {
                     MessageBox.Show("Không tìm thấy phiếu đăng ký cho thí sinh này!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -89,7 +91,7 @@ namespace ACCI_WINFORM.Forms
                 maLichThiCu = chiTietPhieuDK.MaLichThi;
 
                 // Get LichThi
-                var lichThi = lichThiDAO.LayLichThi(maLichThiCu);
+                var lichThi = lichThiBus.LayLichThi(maLichThiCu);
                 if (lichThi == null || lichThi.MaDanhGia != maDanhGia)
                 {
                     MessageBox.Show("Không tìm thấy lịch thi phù hợp với mã đánh giá này!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -97,14 +99,14 @@ namespace ACCI_WINFORM.Forms
                 }
 
                 // Get PhieuDK to check remaining extensions
-                var phieuDK = phieuDKDAO.LayPhieuDK(maPhieuDK);
+                var phieuDK = phieuDKBus.LayPhieuDK(maPhieuDK);
                 if (phieuDK == null)
                 {
                     MessageBox.Show("Không tìm thấy phiếu đăng ký!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                soLanGiaHanConLai = 2 - phieuDK.SoLanGiaHan; // Max 2 extensions allowed
+                soLanGiaHanConLai = 2 - phieuDK.SoLanGiaHan; // Sửa lại: Tính số lần gia hạn còn lại
                 thoiGianThi = lichThi.NgayThi.Date + lichThi.GioThi;
 
                 // Display results
@@ -139,9 +141,14 @@ namespace ACCI_WINFORM.Forms
         private void btnGiaHan_Click(object sender, EventArgs e)
         {
             bool truongHopDacBiet = cbTruongHopDacBiet.Checked;
-            var giaHanForm = new GiaHanThoiGianThiForm(maPhieuDK, maLichThiCu, truongHopDacBiet);
-            giaHanForm.Show();
-            this.Close();
+            using (var giaHanForm = new GiaHanThoiGianThiForm(maPhieuDK, maLichThiCu, truongHopDacBiet, maNV))
+            {
+                var result = giaHanForm.ShowDialog();
+                if (result == DialogResult.OK) // Chỉ đóng nếu gia hạn thành công
+                {
+                    this.Close();
+                }
+            }
         }
     }
 }

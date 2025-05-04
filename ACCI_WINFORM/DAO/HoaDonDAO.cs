@@ -121,6 +121,12 @@ namespace ACCI_WINFORM.DAO
             return DatabaseHelper.ExecuteQuery(query, parameters);
         }
 
+        public DataTable LayHoaDonMoiNhat()
+        {
+            string query = "SELECT MaHoaDon FROM HoaDon ORDER BY MaHoaDon DESC LIMIT 1";
+            return DatabaseHelper.ExecuteQuery(query);
+        }
+
         public DataTable LayDSHoaDon()
         {
             string query = "SELECT * FROM HoaDon";

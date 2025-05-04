@@ -1,10 +1,7 @@
 ﻿using ACCI_WINFORM.BUS;
 using ACCI_WINFORM.Models;
-using ACCI_WINFORM.Utils;
-using MySqlConnector;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -15,22 +12,27 @@ namespace ACCI_WINFORM.Forms
         private readonly string maPhieuDK;
         private readonly string maLichThiCu;
         private readonly bool truongHopDacBiet;
+        private readonly string maNV; // Thêm biến để lưu MaNV
 
-        private readonly ThiSinhBUS thiSinhDAO = new ThiSinhBUS();
-        private readonly ChiTietPhieuDKBUS chiTietPhieuDKDAO = new ChiTietPhieuDKBUS();
-        private readonly LichThiBUS lichThiDAO = new LichThiBUS();
-        private readonly DanhGiaBUS danhGiaDAO = new DanhGiaBUS();
+        private readonly ThiSinhBUS thiSinhBus = new ThiSinhBUS();
+        private readonly ChiTietPhieuDKBUS chiTietPhieuDKBus = new ChiTietPhieuDKBUS();
+        private readonly LichThiBUS lichThiBus = new LichThiBUS();
+        private readonly DanhGiaBUS danhGiaBus = new DanhGiaBUS();
+        private readonly PhieuDKBUS phieuDKBus = new PhieuDKBUS();
+        private readonly PhieuGiaHanBUS phieuGiaHanBus = new PhieuGiaHanBUS();
+        private readonly HoaDonBUS hoaDonBus = new HoaDonBUS();
 
         private ChiTietPhieuDK chiTietPhieuDK;
         private LichThi lichThiCu;
         private string maDanhGia;
 
-        public GiaHanThoiGianThiForm(string maPhieuDK, string maLichThiCu, bool truongHopDacBiet)
+        public GiaHanThoiGianThiForm(string maPhieuDK, string maLichThiCu, bool truongHopDacBiet, string maNV)
         {
             InitializeComponent();
             this.maPhieuDK = maPhieuDK;
             this.maLichThiCu = maLichThiCu;
             this.truongHopDacBiet = truongHopDacBiet;
+            this.maNV = maNV; // Lưu MaNV
             LoadData();
         }
 
@@ -38,8 +40,7 @@ namespace ACCI_WINFORM.Forms
         {
             try
             {
-                // Get ChiTietPhieuDK for the given MaPhieuDK
-                var chiTietList = chiTietPhieuDKDAO.LayDSChiTietPhieuDK(maPhieuDK);
+                var chiTietList = chiTietPhieuDKBus.LayDSChiTietPhieuDK(maPhieuDK);
                 chiTietPhieuDK = chiTietList.FirstOrDefault(ct => ct.MaLichThi == maLichThiCu);
                 if (chiTietPhieuDK == null)
                 {
@@ -48,8 +49,7 @@ namespace ACCI_WINFORM.Forms
                     return;
                 }
 
-                // Get ThiSinh
-                var thiSinh = thiSinhDAO.LayThiSinh(chiTietPhieuDK.MaThiSinh);
+                var thiSinh = thiSinhBus.LayThiSinh(chiTietPhieuDK.MaThiSinh);
                 if (thiSinh == null)
                 {
                     MessageBox.Show("Không tìm thấy thông tin thí sinh!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -57,8 +57,7 @@ namespace ACCI_WINFORM.Forms
                     return;
                 }
 
-                // Get old LichThi
-                lichThiCu = lichThiDAO.LayLichThi(maLichThiCu);
+                lichThiCu = lichThiBus.LayLichThi(maLichThiCu);
                 if (lichThiCu == null)
                 {
                     MessageBox.Show("Không tìm thấy lịch thi cũ!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -66,9 +65,8 @@ namespace ACCI_WINFORM.Forms
                     return;
                 }
 
-                // Get DanhGia
                 maDanhGia = lichThiCu.MaDanhGia;
-                var danhGia = danhGiaDAO.LayDanhGia(maDanhGia);
+                var danhGia = danhGiaBus.LayDanhGia(maDanhGia);
                 if (danhGia == null)
                 {
                     MessageBox.Show("Không tìm thấy mã đánh giá!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -76,7 +74,6 @@ namespace ACCI_WINFORM.Forms
                     return;
                 }
 
-                // Populate DataGridView
                 dgvThongTin.Rows.Clear();
                 dgvThongTin.Rows.Add(
                     1,
@@ -87,7 +84,6 @@ namespace ACCI_WINFORM.Forms
                     $"{lichThiCu.GioThi.Hours:D2}:{lichThiCu.GioThi.Minutes:D2} {lichThiCu.NgayThi:dd/MM/yyyy}"
                 );
 
-                // Load available LichThi for the same MaDanhGia
                 LoadLichThiMoi();
             }
             catch (Exception ex)
@@ -101,8 +97,8 @@ namespace ACCI_WINFORM.Forms
         {
             try
             {
-                var lichThiList = lichThiDAO.LayDSLichThiMoDangKyTheoDanhGia(maDanhGia)
-                    .Where(lt => lt.MaLichThi != maLichThiCu &&
+                var lichThiList = lichThiBus.LayDSLichThiMoDangKyTheoDanhGia(maDanhGia)
+                    .Where(lt => lt != null && lt.MaLichThi != maLichThiCu &&
                                  (lt.NgayThi.Date > DateTime.Now.Date ||
                                   (lt.NgayThi.Date == DateTime.Now.Date && lt.GioThi > DateTime.Now.TimeOfDay)) &&
                                  lt.SoLuongDK < lt.SoLuongMax)
@@ -111,16 +107,14 @@ namespace ACCI_WINFORM.Forms
                 if (lichThiList.Count == 0)
                 {
                     MessageBox.Show("Không có lịch thi mới hợp lệ để gia hạn!", "Thông Báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    this.Close();
+                    // Không gọi this.Close() ngay, để form hiển thị thông báo và người dùng tự đóng
                     return;
                 }
 
-                // Bind the list to ComboBox and format the display text
                 cbLichThiMoi.DataSource = lichThiList;
                 cbLichThiMoi.DisplayMember = "MaLichThi";
                 cbLichThiMoi.ValueMember = "MaLichThi";
 
-                // Format the ComboBox items
                 cbLichThiMoi.Format += (s, e) =>
                 {
                     if (e.ListItem is LichThi lt)
@@ -150,62 +144,74 @@ namespace ACCI_WINFORM.Forms
 
                 // 1. Insert into PhieuGiaHan
                 string lyDo = truongHopDacBiet ? "Đặc biệt" : "Không đặc biệt";
-                string queryPhieuGiaHan = @"
-                    INSERT INTO PhieuGiaHan (MaPhieuDK, ThuTu_CT, MaLichThi_Cu, MaLichThi_Moi, LyDo, NgayYC, MaNV_XuLy, TrangThai, MaPhiGiaHan)
-                    VALUES (@MaPhieuDK, @ThuTu_CT, @MaLichThi_Cu, @MaLichThi_Moi, @LyDo, @NgayYC, @MaNV_XuLy, @TrangThai, @MaPhiGiaHan)";
-                var parametersPhieuGiaHan = new[]
+                PhieuGiaHan phieuGiaHan = new PhieuGiaHan
                 {
-                    new MySqlParameter("@MaPhieuDK", maPhieuDK),
-                    new MySqlParameter("@ThuTu_CT", chiTietPhieuDK.ThuTu),
-                    new MySqlParameter("@MaLichThi_Cu", maLichThiCu),
-                    new MySqlParameter("@MaLichThi_Moi", maLichThiMoi),
-                    new MySqlParameter("@LyDo", lyDo),
-                    new MySqlParameter("@NgayYC", DateTime.Now),
-                    new MySqlParameter("@MaNV_XuLy", "NV1"), // Placeholder
-                    new MySqlParameter("@TrangThai", "ChoThanhToan"),
-                    new MySqlParameter("@MaPhiGiaHan", truongHopDacBiet ? null : "PHG1")
+                    MaPhieuDK = maPhieuDK,
+                    ThuTu_CT = chiTietPhieuDK.ThuTu,
+                    MaLichThi_Cu = maLichThiCu,
+                    MaLichThi_Moi = maLichThiMoi,
+                    LyDo = lyDo,
+                    NgayYC = DateTime.Now,
+                    MaNV_XuLy = maNV, // Sử dụng MaNV của người dùng đăng nhập
+                    TrangThai = "ChoThanhToan",
+                    MaPhiGiaHan = truongHopDacBiet ? null : "PHG1"
                 };
-                DatabaseHelper.ExecuteQuery(queryPhieuGiaHan, parametersPhieuGiaHan);
+                bool phieuGiaHanInserted = phieuGiaHanBus.ThemPhieuGiaHan(phieuGiaHan);
+                if (!phieuGiaHanInserted)
+                {
+                    throw new Exception("Không thể tạo phiếu gia hạn!");
+                }
+
+                // Fetch the newly inserted MaPhieuGiaHan
+                PhieuGiaHan newPhieuGiaHan = phieuGiaHanBus.LayPhieuGiaHanTheoMaPhieuDKVaLichThi(maPhieuDK, maLichThiCu, maLichThiMoi);
+                if (newPhieuGiaHan == null)
+                {
+                    throw new Exception("Không thể lấy mã phiếu gia hạn vừa tạo!");
+                }
+                string newMaPhieuGiaHan = newPhieuGiaHan.MaPhieuGiaHan;
 
                 // 2. Update PhieuDK (increment SoLanGiaHan)
-                string queryPhieuDK = "UPDATE PhieuDK SET SoLanGiaHan = SoLanGiaHan - 1 WHERE MaPhieuDK = @MaPhieuDK";
-                var parametersPhieuDK = new[] { new MySqlParameter("@MaPhieuDK", maPhieuDK) };
-                DatabaseHelper.ExecuteQuery(queryPhieuDK, parametersPhieuDK);
+                var phieuDK = phieuDKBus.LayPhieuDK(maPhieuDK);
+                if (phieuDK == null)
+                {
+                    throw new Exception("Không tìm thấy phiếu đăng ký!");
+                }
+                phieuDK.SoLanGiaHan -= 1;
+                if (!phieuDKBus.CapNhatPhieuDK(phieuDK))
+                {
+                    throw new Exception("Không thể cập nhật số lần gia hạn!");
+                }
 
                 // 3. Update ChiTietPhieuDK (update MaLichThi)
-                string queryChiTietPhieuDK = "UPDATE ChiTietPhieuDK SET MaLichThi = @MaLichThi WHERE MaPhieuDK = @MaPhieuDK AND ThuTu = @ThuTu";
-                var parametersChiTietPhieuDK = new[]
+                chiTietPhieuDK.MaLichThi = maLichThiMoi;
+                if (!chiTietPhieuDKBus.CapNhatChiTietPhieuDK(chiTietPhieuDK))
                 {
-                    new MySqlParameter("@MaLichThi", maLichThiMoi),
-                    new MySqlParameter("@MaPhieuDK", maPhieuDK),
-                    new MySqlParameter("@ThuTu", chiTietPhieuDK.ThuTu)
-                };
-                DatabaseHelper.ExecuteQuery(queryChiTietPhieuDK, parametersChiTietPhieuDK);
-
-                // 4. Update SoLuongDK for old and new LichThi
-                lichThiDAO.TangSoLuongDK(maLichThiMoi); // Increment SoLuongDK for new LichThi
-                string queryDecreaseSoLuongDK = "UPDATE LichThi SET SoLuongDK = SoLuongDK - 1 WHERE MaLichThi = @MaLichThi AND SoLuongDK > 0";
-                var parametersDecrease = new[] { new MySqlParameter("@MaLichThi", maLichThiCu) };
-                DatabaseHelper.ExecuteQuery(queryDecreaseSoLuongDK, parametersDecrease); // Decrement SoLuongDK for old LichThi
+                    throw new Exception("Không thể cập nhật chi tiết phiếu đăng ký!");
+                }
+                if (!lichThiBus.GiamSoLuongDK(maLichThiCu))
+                {
+                    throw new Exception("Không thể giảm số lượng đăng ký cho lịch thi cũ!");
+                }
 
                 // 5. Insert into HoaDon (only if not a special case)
                 if (!truongHopDacBiet)
                 {
-                    decimal donGia = GetPhiGiaHanDonGia("PHG1");
-                    string queryHoaDon = @"
-                        INSERT INTO HoaDon (MaPhieuGiaHan, MaNV_KeToan, NgayLap, TongTienGoc, SoTienGiam, TongThu, TrangThaiTT)
-                        VALUES (@MaPhieuGiaHan, @MaNV_KeToan, @NgayLap, @TongTienGoc, @SoTienGiam, @TongThu, @TrangThaiTT)";
-                    var parametersHoaDon = new[]
+                    decimal donGia = phieuGiaHanBus.LayDonGiaPhiGiaHan("PHG1");
+                    HoaDon hoaDon = new HoaDon
                     {
-                        new MySqlParameter("@MaPhieuGiaHan", $"PGH{GetLastPhieuGiaHanId()}"),
-                        new MySqlParameter("@MaNV_KeToan", "NV2"),
-                        new MySqlParameter("@NgayLap", DateTime.Now),
-                        new MySqlParameter("@TongTienGoc", donGia),
-                        new MySqlParameter("@SoTienGiam", "0"),
-                        new MySqlParameter("@TongThu", donGia),
-                        new MySqlParameter("@TrangThaiTT", "ChuaTT")
+                        MaPhieuGiaHan = newMaPhieuGiaHan,
+                        MaNV_KeToan = "NV2",
+                        NgayLap = DateTime.Now,
+                        TongTienGoc = donGia,
+                        SoTienGiam = 0m,
+                        TongThu = donGia,
+                        TrangThaiTT = "ChuaTT"
                     };
-                    DatabaseHelper.ExecuteQuery(queryHoaDon, parametersHoaDon);
+                    string maHoaDon = hoaDonBus.ThemHoaDonTheoPhieuGiaHan(hoaDon);
+                    if (string.IsNullOrEmpty(maHoaDon))
+                    {
+                        throw new Exception("Không thể tạo hóa đơn!");
+                    }
                 }
 
                 MessageBox.Show("Gia hạn thời gian thi thành công!", "Thông Báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -215,32 +221,6 @@ namespace ACCI_WINFORM.Forms
             {
                 MessageBox.Show($"Lỗi khi gia hạn: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private decimal GetPhiGiaHanDonGia(string maPhiGiaHan)
-        {
-            string query = "SELECT DonGia FROM PhiGiaHan WHERE MaPhiGiaHan = @MaPhiGiaHan";
-            var parameters = new[] { new MySqlParameter("@MaPhiGiaHan", maPhiGiaHan) };
-            DataTable result = DatabaseHelper.ExecuteQuery(query, parameters);
-
-            if (result.Rows.Count == 0)
-            {
-                throw new Exception($"Không tìm thấy phí gia hạn với mã {maPhiGiaHan}");
-            }
-
-            return Convert.ToDecimal(result.Rows[0]["DonGia"]);
-        }
-
-        private int GetLastPhieuGiaHanId()
-        {
-            string query = "SELECT MaPhieuGiaHan FROM PhieuGiaHan WHERE MaPhieuGiaHan LIKE 'PGH%' ORDER BY CAST(SUBSTRING(MaPhieuGiaHan, 4) AS UNSIGNED) DESC LIMIT 1";
-            DataTable result = DatabaseHelper.ExecuteQuery(query);
-            if (result.Rows.Count == 0)
-            {
-                return 1;
-            }
-            string lastMaPhieuGiaHan = result.Rows[0]["MaPhieuGiaHan"].ToString();
-            return int.Parse(lastMaPhieuGiaHan.Substring(3));
         }
 
         private void btnHuy_Click(object sender, EventArgs e)
