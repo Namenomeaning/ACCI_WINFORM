@@ -196,61 +196,6 @@ namespace ACCI_WINFORM.Forms
             dgvChiTietPhieu.DataSource = dt;
         }
 
-        private void btnCapNhatTrangThai_Click(object sender, EventArgs e)
-        {
-            if (currentPhieuDK == null) return;
-
-            if (currentPhieuDK.TrangThai == "Huy")
-            {
-                MessageBox.Show("Phiếu đã bị hủy, không thể cập nhật trạng thái!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Create a simple form to select new status
-            using (Form frmStatus = new Form())
-            {
-                frmStatus.Text = "Cập nhật trạng thái";
-                frmStatus.Size = new System.Drawing.Size(300, 200);
-                frmStatus.StartPosition = FormStartPosition.CenterParent;
-                frmStatus.FormBorderStyle = FormBorderStyle.FixedDialog;
-                frmStatus.MaximizeBox = false;
-                frmStatus.MinimizeBox = false;
-
-                ComboBox cboStatus = new ComboBox();
-                cboStatus.Location = new System.Drawing.Point(20, 20);
-                cboStatus.Size = new System.Drawing.Size(240, 30);
-                cboStatus.DropDownStyle = ComboBoxStyle.DropDownList;
-                cboStatus.Items.AddRange(new string[] { "Moi", "DaThanhToan", "Huy" });
-                cboStatus.SelectedItem = currentPhieuDK.TrangThai;
-
-                Button btnOK = new Button();
-                btnOK.Text = "Cập nhật";
-                btnOK.Location = new System.Drawing.Point(100, 80);
-                btnOK.DialogResult = DialogResult.OK;
-
-                frmStatus.Controls.Add(cboStatus);
-                frmStatus.Controls.Add(btnOK);
-
-                if (frmStatus.ShowDialog() == DialogResult.OK)
-                {
-                    string newStatus = cboStatus.SelectedItem.ToString();
-                    if (newStatus != currentPhieuDK.TrangThai)
-                    {
-                        currentPhieuDK.TrangThai = newStatus;
-                        if (phieuDKBus.CapNhatPhieuDK(currentPhieuDK))
-                        {
-                            MessageBox.Show("Cập nhật trạng thái thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            DisplayPhieuDKData();
-                        }
-                        else
-                        {
-                            MessageBox.Show("Cập nhật trạng thái thất bại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                    }
-                }
-            }
-        }
-
         private void btnTaoHoaDon_Click(object sender, EventArgs e)
         {
             if (currentPhieuDK == null) return;
