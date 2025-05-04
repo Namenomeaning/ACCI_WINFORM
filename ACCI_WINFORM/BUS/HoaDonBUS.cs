@@ -15,69 +15,93 @@ namespace ACCI_WINFORM.BUS
         // Add dependencies for UuDaiBUS if needed for validation/calculation
         public string ThemHoaDon(string maPhieuDK, string maNhanVien)
         {
-            // Lấy danh sách chi tiết phiếu đăng ký
-            var chiTietPhieuDKBus = new ChiTietPhieuDKBUS();
-            var danhSachChiTiet = chiTietPhieuDKBus.LayDSChiTietPhieuDK(maPhieuDK);
-
-            if (danhSachChiTiet == null || danhSachChiTiet.Count == 0)
+            try
             {
-                return null; // Không có chi tiết để tạo hóa đơn
-            }
+                // Lấy danh sách chi tiết phiếu đăng ký
+                var chiTietPhieuDKBus = new ChiTietPhieuDKBUS();
+                var danhSachChiTiet = chiTietPhieuDKBus.LayDSChiTietPhieuDK(maPhieuDK);
 
-            // Tính tổng tiền dựa trên thông tin đánh giá
-            decimal tongTienGoc = 0;
-            var chiTietHoaDonList = new List<ChiTietHoaDon>();
-
-            foreach (var chiTiet in danhSachChiTiet)
-            {
-                var lichThiBus = new LichThiBUS();
-                var lichThi = lichThiBus.LayLichThi(chiTiet.MaLichThi);
-
-                if (lichThi != null)
+                if (danhSachChiTiet == null || danhSachChiTiet.Count == 0)
                 {
-                    var danhGia = danhGiaBUS.LayDanhGia(lichThi.MaDanhGia);
-                    if (danhGia != null)
-                    {
-                        var chiTietHoaDon = new ChiTietHoaDon
-                        {
-                            MaDanhGia = danhGia.MaDanhGia,
-                            SoLuong = 1, // Mỗi chi tiết phiếu đăng ký tương ứng với 1 lượt đăng ký
-                            DonGia = danhGia.DonGia
-                        };
-                        chiTietHoaDon.ThanhTien = chiTietHoaDon.SoLuong * chiTietHoaDon.DonGia;
-                        tongTienGoc += chiTietHoaDon.ThanhTien;
+                    Console.WriteLine("Không có chi tiết phiếu đăng ký để tạo hóa đơn.");
+                    return null; // Không có chi tiết để tạo hóa đơn
+                }
 
-                        chiTietHoaDonList.Add(chiTietHoaDon);
+                // Tính tổng tiền dựa trên thông tin đánh giá
+                decimal tongTienGoc = 0;
+                var chiTietHoaDonList = new List<ChiTietHoaDon>();
+
+                foreach (var chiTiet in danhSachChiTiet)
+                {
+                    var lichThiBus = new LichThiBUS();
+                    var lichThi = lichThiBus.LayLichThi(chiTiet.MaLichThi);
+
+                    if (lichThi != null)
+                    {
+                        var danhGia = danhGiaBUS.LayDanhGia(lichThi.MaDanhGia);
+                        if (danhGia != null)
+                        {
+                            var chiTietHoaDon = new ChiTietHoaDon
+                            {
+                                MaDanhGia = danhGia.MaDanhGia,
+                                SoLuong = 1, // Mỗi chi tiết phiếu đăng ký tương ứng với 1 lượt đăng ký
+                                DonGia = danhGia.DonGia
+                            };
+                            chiTietHoaDon.ThanhTien = chiTietHoaDon.SoLuong * chiTietHoaDon.DonGia;
+                            tongTienGoc += chiTietHoaDon.ThanhTien;
+
+                            chiTietHoaDonList.Add(chiTietHoaDon);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Không tìm thấy đánh giá cho lịch thi: {chiTiet.MaLichThi}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Không tìm thấy lịch thi: {chiTiet.MaLichThi}");
                     }
                 }
-            }
 
-            // Tạo đối tượng hóa đơn
-            var hoaDon = new HoaDon
-            {
-                MaPhieuDK = maPhieuDK,
-                MaNV_KeToan = maNhanVien,
-                NgayLap = DateTime.Now,
-                TongTienGoc = tongTienGoc,
-                SoTienGiam = 0, // Không áp dụng giảm giá
-                TongThu = tongTienGoc,
-                TrangThaiTT = "ChuaThanhToan"
-            };
-
-            // Gọi DAO để thêm hóa đơn
-            if (hoaDonDAO.ThemHoaDon(hoaDon) > 0)
-            {
-                // Lấy mã hóa đơn vừa tạo
-                var maHoaDon = hoaDon.MaHoaDon;
-
-                // Thêm chi tiết hóa đơn
-                foreach (var chiTietHoaDon in chiTietHoaDonList)
+                // Tạo đối tượng hóa đơn
+                var hoaDon = new HoaDon
                 {
-                    chiTietHoaDon.MaHoaDon = maHoaDon;
-                    chiTietHoaDonBUS.ThemChiTietHoaDon(chiTietHoaDon);
-                }
+                    MaPhieuDK = maPhieuDK,
+                    MaNV_KeToan = maNhanVien,
+                    NgayLap = DateTime.Now,
+                    TongTienGoc = tongTienGoc,
+                    SoTienGiam = 0, // Không áp dụng giảm giá
+                    TongThu = tongTienGoc,
+                    TrangThaiTT = "ChuaTT"
+                };
 
-                return maHoaDon; // Trả về mã hóa đơn
+                // Gọi DAO để thêm hóa đơn
+                int result = hoaDonDAO.ThemHoaDon(hoaDon);
+                if (result > 0)
+                {
+                    // Lấy mã hóa đơn vừa tạo
+                    var maHoaDon = hoaDon.MaHoaDon;
+
+                    // Thêm chi tiết hóa đơn
+                    foreach (var chiTietHoaDon in chiTietHoaDonList)
+                    {
+                        chiTietHoaDon.MaHoaDon = maHoaDon;
+                        if (!chiTietHoaDonBUS.ThemChiTietHoaDon(chiTietHoaDon))
+                        {
+                            Console.WriteLine($"Lỗi khi thêm chi tiết hóa đơn: {chiTietHoaDon.MaDanhGia}");
+                        }
+                    }
+
+                    return maHoaDon; // Trả về mã hóa đơn
+                }
+                else
+                {
+                    Console.WriteLine("Lỗi khi thêm hóa đơn vào cơ sở dữ liệu.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi trong ThemHoaDon: {ex.Message}");
             }
 
             return null; // Thêm hóa đơn thất bại
@@ -235,6 +259,23 @@ namespace ACCI_WINFORM.BUS
                 NgayThanhToan = row["NgayThanhToan"] != DBNull.Value ? Convert.ToDateTime(row["NgayThanhToan"]) : (DateTime?)null,
                 TrangThaiTT = row["TrangThaiTT"].ToString()
             };
+        }
+        public bool CapNhatThanhToan(string maHoaDon, string phuongThuc, string maGiaoDich = null)
+        {
+            var hoaDon = LayHoaDon(maHoaDon);
+            if (hoaDon == null || hoaDon.NgayThanhToan != null)
+            {
+                return false; // Not found or already paid
+            }
+
+            hoaDon.NgayThanhToan = DateTime.Now;
+            hoaDon.PhuongThuc = phuongThuc;
+            hoaDon.MaGiaoDich = maGiaoDich; // Can be null for cash
+
+            // Since we removed TrangThaiTT from our model but database still requires it
+            hoaDon.TrangThaiTT = "DaTT"; // Set the status to paid
+
+            return hoaDonDAO.CapNhatHoaDon(hoaDon) > 0;
         }
     }
 }

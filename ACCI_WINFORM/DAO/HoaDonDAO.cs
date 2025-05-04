@@ -11,22 +11,62 @@ namespace ACCI_WINFORM.DAO
     {
         public int ThemHoaDon(HoaDon hoaDon)
         {
-            string query = "INSERT INTO HoaDon (MaPhieuDK, MaNV_KeToan, NgayLap, TongTienGoc, SoTienGiam, TongThu, TrangThaiTT) " +
-                           "VALUES (@MaPhieuDK, @MaNV_KeToan, @NgayLap, @TongTienGoc, @SoTienGiam, @TongThu, @TrangThaiTT); " +
-                           "SELECT LAST_INSERT_ID();";
-
-            var parameters = new[]
+            try
             {
-            new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK),
-            new MySqlParameter("@MaNV_KeToan", hoaDon.MaNV_KeToan),
-            new MySqlParameter("@NgayLap", hoaDon.NgayLap),
-            new MySqlParameter("@TongTienGoc", hoaDon.TongTienGoc),
-            new MySqlParameter("@SoTienGiam", hoaDon.SoTienGiam),
-            new MySqlParameter("@TongThu", hoaDon.TongThu),
-            new MySqlParameter("@TrangThaiTT", hoaDon.TrangThaiTT)
-        };
+                // Bước 1: Thêm hóa đơn mới
+                string insertQuery = "INSERT INTO HoaDon (MaPhieuDK, MaNV_KeToan, NgayLap, TongTienGoc, SoTienGiam, TongThu, TrangThaiTT) " +
+                                  "VALUES (@MaPhieuDK, @MaNV_KeToan, @NgayLap, @TongTienGoc, @SoTienGiam, @TongThu, @TrangThaiTT)";
 
-            return DatabaseHelper.ExecuteNonQuery(query, parameters);
+                var parameters = new[]
+                {
+                    new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK),
+                    new MySqlParameter("@MaNV_KeToan", hoaDon.MaNV_KeToan),
+                    new MySqlParameter("@NgayLap", hoaDon.NgayLap),
+                    new MySqlParameter("@TongTienGoc", hoaDon.TongTienGoc),
+                    new MySqlParameter("@SoTienGiam", hoaDon.SoTienGiam),
+                    new MySqlParameter("@TongThu", hoaDon.TongThu),
+                    new MySqlParameter("@TrangThaiTT", hoaDon.TrangThaiTT)
+                };
+
+                // Thực hiện thêm mới
+                int rowsAffected = DatabaseHelper.ExecuteNonQuery(insertQuery, parameters);
+
+                if (rowsAffected > 0)
+                {
+                    // Bước 2: Lấy ID đầy đủ (HD1, HD2, ...) của hóa đơn vừa tạo
+                    string selectQuery = "SELECT MaHoaDon FROM HoaDon WHERE MaPhieuDK = @MaPhieuDK AND MaNV_KeToan = @MaNV_KeToan ORDER BY NgayLap DESC LIMIT 1";
+                    var selectParams = new[]
+                    {
+                        new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK),
+                        new MySqlParameter("@MaNV_KeToan", hoaDon.MaNV_KeToan)
+                    };
+
+                    DataTable dt = DatabaseHelper.ExecuteQuery(selectQuery, selectParams);
+
+                    if (dt.Rows.Count > 0)
+                    {
+                        // Cập nhật ID đúng định dạng cho đối tượng hoaDon
+                        string actualInvoiceId = dt.Rows[0]["MaHoaDon"].ToString();
+                        hoaDon.MaHoaDon = actualInvoiceId;
+
+                        // Convert to numeric ID for legacy code compatibility
+                        if (actualInvoiceId.StartsWith("HD") && int.TryParse(actualInvoiceId.Substring(2), out int numericId))
+                        {
+                            return numericId;
+                        }
+
+                        // If extraction fails, just return 1 to indicate success
+                        return 1;
+                    }
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi trong ThemHoaDon (DAO): {ex.Message}");
+                return 0;
+            }
         }
 
         // Kiểm tra phiếu đăng ký đã có hóa đơn hay chưa

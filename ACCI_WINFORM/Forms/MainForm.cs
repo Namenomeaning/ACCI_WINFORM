@@ -26,7 +26,7 @@ namespace ACCI_WINFORM
             {
                 case "TiepNhan":
                     AddButton("Lập Phiếu Đăng Ký", () => new DangKyForm().Show());
-                    AddButton("Tra Cứu Phiếu Đăng Ký", () => new MH_TraCuuPhieuDangKy().Show());
+                    AddButton("Tra Cứu Phiếu Đăng Ký", () => new TraCuuPhieuDangKyForm().Show());
                     AddButton("Tra Cứu Chứng Chỉ", () => new TraCuuChungChiForm().Show());
                     AddButton("Gia Hạn Thời Gian Thi", () => new KiemTraGiaHanForm().Show());
                     break;

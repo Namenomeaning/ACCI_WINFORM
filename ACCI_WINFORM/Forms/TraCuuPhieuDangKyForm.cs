@@ -4,7 +4,7 @@ using System.Data;
 
 namespace ACCI_WINFORM.Forms
 {
-    public partial class MH_TraCuuPhieuDangKy : Form
+    public partial class TraCuuPhieuDangKyForm : Form
     {
         private readonly PhieuDKBUS phieuDKBus = new PhieuDKBUS();
         private readonly KhachHangBUS khachHangBus = new KhachHangBUS();
@@ -16,7 +16,7 @@ namespace ACCI_WINFORM.Forms
         private KhachHang currentKhachHang = null;
         private List<ChiTietPhieuDK> currentChiTietList = null;
 
-        public MH_TraCuuPhieuDangKy()
+        public TraCuuPhieuDangKyForm()
         {
             InitializeComponent();
         }
@@ -33,62 +33,43 @@ namespace ACCI_WINFORM.Forms
             // Configure the DataGridView for ChiTietPhieuDK
             dgvChiTietPhieu.AutoGenerateColumns = false;
 
-            // Add columns
+            // Add columns - simplified to only show the required fields
             if (dgvChiTietPhieu.Columns.Count == 0)
             {
                 dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
                 {
                     Name = "ThuTu",
                     HeaderText = "Thứ tự",
-                    DataPropertyName = "ThuTu"
+                    DataPropertyName = "ThuTu",
+                    Width = 80
                 });
                 dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
                 {
                     Name = "MaThiSinh",
                     HeaderText = "Mã thí sinh",
-                    DataPropertyName = "MaThiSinh"
+                    DataPropertyName = "MaThiSinh",
+                    Width = 120
                 });
                 dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
                 {
                     Name = "HoTen",
                     HeaderText = "Họ tên",
-                    DataPropertyName = "HoTen"
+                    DataPropertyName = "HoTen",
+                    Width = 200
                 });
                 dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
                 {
                     Name = "NgayThi",
                     HeaderText = "Ngày thi",
-                    DataPropertyName = "NgayThi"
+                    DataPropertyName = "NgayThi",
+                    Width = 120
                 });
                 dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
                 {
                     Name = "GioThi",
                     HeaderText = "Giờ thi",
-                    DataPropertyName = "GioThi"
-                });
-                dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
-                {
-                    Name = "SoBaoDanh",
-                    HeaderText = "Số báo danh",
-                    DataPropertyName = "SoBaoDanh"
-                });
-                dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
-                {
-                    Name = "TrangThaiCT",
-                    HeaderText = "Trạng thái",
-                    DataPropertyName = "TrangThaiCT"
-                });
-                dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
-                {
-                    Name = "Diem",
-                    HeaderText = "Điểm",
-                    DataPropertyName = "Diem"
-                });
-                dgvChiTietPhieu.Columns.Add(new DataGridViewTextBoxColumn
-                {
-                    Name = "KetQua",
-                    HeaderText = "Kết quả",
-                    DataPropertyName = "KetQua"
+                    DataPropertyName = "GioThi",
+                    Width = 120
                 });
             }
         }
@@ -98,7 +79,7 @@ namespace ACCI_WINFORM.Forms
             // Clear all fields
             txtMaPhieuDK.Clear();
             txtNgayTao.Clear();
-            txtTrangThai.Clear();
+            // Removed txtTrangThai.Clear();
             txtMaKhachHang.Clear();
             txtTenKhachHang.Clear();
             txtLoaiKhach.Clear();
@@ -110,8 +91,7 @@ namespace ACCI_WINFORM.Forms
             // Clear DataGridView
             dgvChiTietPhieu.DataSource = null;
 
-            // Disable buttons
-            btnCapNhatTrangThai.Enabled = false;
+            // Disable buttons (removed btnCapNhatTrangThai)
             btnTaoHoaDon.Enabled = false;
             btnInPhieu.Enabled = false;
         }
@@ -145,8 +125,7 @@ namespace ACCI_WINFORM.Forms
             DisplayPhieuDKData();
             DisplayChiTietPhieuData();
 
-            // Enable buttons
-            btnCapNhatTrangThai.Enabled = true;
+            // Enable buttons (removed the update status button)
             btnInPhieu.Enabled = true;
 
             // Check if HoaDon exists
@@ -174,7 +153,7 @@ namespace ACCI_WINFORM.Forms
 
             txtMaPhieuDK.Text = currentPhieuDK.MaPhieuDK;
             txtNgayTao.Text = currentPhieuDK.NgayTao.ToString("dd/MM/yyyy HH:mm");
-            txtTrangThai.Text = currentPhieuDK.TrangThai;
+            // Removed txtTrangThai field
             txtMaKhachHang.Text = currentKhachHang.MaKhachHang;
             txtTenKhachHang.Text = currentKhachHang.HoTen;
             txtLoaiKhach.Text = currentKhachHang.LoaiKhach == "TuDo" ? "Khách tự do" : "Khách đơn vị";
@@ -184,6 +163,7 @@ namespace ACCI_WINFORM.Forms
             txtTenDonVi.Text = currentKhachHang.TenDonVi;
         }
 
+        // Also need to modify DisplayChiTietPhieuData to match the simplified columns
         private void DisplayChiTietPhieuData()
         {
             if (currentChiTietList == null || currentChiTietList.Count == 0) return;
@@ -194,10 +174,6 @@ namespace ACCI_WINFORM.Forms
             dt.Columns.Add("HoTen", typeof(string));
             dt.Columns.Add("NgayThi", typeof(string));
             dt.Columns.Add("GioThi", typeof(string));
-            dt.Columns.Add("SoBaoDanh", typeof(string));
-            dt.Columns.Add("TrangThaiCT", typeof(string));
-            dt.Columns.Add("Diem", typeof(decimal));
-            dt.Columns.Add("KetQua", typeof(string));
 
             foreach (var chiTiet in currentChiTietList)
             {
@@ -217,11 +193,7 @@ namespace ACCI_WINFORM.Forms
                     chiTiet.MaThiSinh,
                     hoTen,
                     ngayThi,
-                    gioThi,
-                    chiTiet.SoBaoDanh,
-                    chiTiet.TrangThaiCT,
-                    chiTiet.Diem,
-                    chiTiet.KetQua
+                    gioThi
                 );
             }
 
@@ -297,10 +269,8 @@ namespace ACCI_WINFORM.Forms
                 if (hoaDon != null)
                 {
                     // Mở form xem hóa đơn
-                    //var hoaDonForm = new HoaDonForm(hoaDon.MaHoaDon);
-                    //hoaDonForm.ShowDialog();
-                    MessageBox.Show("Đã mở trang xem hóa đơn", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
+                    var hoaDonForm = new HoaDonForm(hoaDon.MaHoaDon);
+                    hoaDonForm.ShowDialog();
                 }
                 else
                 {
@@ -331,9 +301,8 @@ namespace ACCI_WINFORM.Forms
                         // Hỏi người dùng có muốn mở hóa đơn ngay không
                         if (MessageBox.Show("Bạn có muốn xem hóa đơn vừa tạo không?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                         {
-                            //var hoaDonForm = new HoaDonForm(maHoaDon);
-                            //hoaDonForm.ShowDialog();
-                            MessageBox.Show("Đã mở trang xem hóa đơn", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            var hoaDonForm = new HoaDonForm(maHoaDon);
+                            hoaDonForm.ShowDialog();
                         }
                     }
                     else
@@ -368,6 +337,11 @@ namespace ACCI_WINFORM.Forms
             {
                 new MainForm().Show();
             }
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
