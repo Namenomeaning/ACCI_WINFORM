@@ -13,13 +13,13 @@ namespace ACCI_WINFORM.DAO
         {
             try
             {
-                // Bước 1: Thêm hóa đơn mới
-                string insertQuery = "INSERT INTO HoaDon (MaPhieuDK, MaNV_KeToan, NgayLap, TongTienGoc, SoTienGiam, TongThu, TrangThaiTT) " +
-                                  "VALUES (@MaPhieuDK, @MaNV_KeToan, @NgayLap, @TongTienGoc, @SoTienGiam, @TongThu, @TrangThaiTT)";
+                string insertQuery = "INSERT INTO HoaDon (MaPhieuDK, MaPhieuGiaHan, MaNV_KeToan, NgayLap, TongTienGoc, SoTienGiam, TongThu, TrangThaiTT) " +
+                                  "VALUES (@MaPhieuDK, @MaPhieuGiaHan, @MaNV_KeToan, @NgayLap, @TongTienGoc, @SoTienGiam, @TongThu, @TrangThaiTT)";
 
                 var parameters = new[]
                 {
-                    new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK),
+                    new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK ?? (object)DBNull.Value),
+                    new MySqlParameter("@MaPhieuGiaHan", hoaDon.MaPhieuGiaHan ?? (object)DBNull.Value),
                     new MySqlParameter("@MaNV_KeToan", hoaDon.MaNV_KeToan),
                     new MySqlParameter("@NgayLap", hoaDon.NgayLap),
                     new MySqlParameter("@TongTienGoc", hoaDon.TongTienGoc),
@@ -28,38 +28,34 @@ namespace ACCI_WINFORM.DAO
                     new MySqlParameter("@TrangThaiTT", hoaDon.TrangThaiTT)
                 };
 
-                // Thực hiện thêm mới
                 int rowsAffected = DatabaseHelper.ExecuteNonQuery(insertQuery, parameters);
 
                 if (rowsAffected > 0)
                 {
-                    // Bước 2: Lấy ID đầy đủ (HD1, HD2, ...) của hóa đơn vừa tạo
-                    string selectQuery = "SELECT MaHoaDon FROM HoaDon WHERE MaPhieuDK = @MaPhieuDK AND MaNV_KeToan = @MaNV_KeToan ORDER BY NgayLap DESC LIMIT 1";
-                    var selectParams = new[]
-                    {
-                        new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK),
-                        new MySqlParameter("@MaNV_KeToan", hoaDon.MaNV_KeToan)
-                    };
-
-                    DataTable dt = DatabaseHelper.ExecuteQuery(selectQuery, selectParams);
+                    // Sử dụng LAST_INSERT_ID() để lấy ID vừa chèn (nếu MaHoaDon là auto-increment)
+                    string selectQuery = "SELECT MaHoaDon FROM HoaDon WHERE MaHoaDon = LAST_INSERT_ID()";
+                    DataTable dt = DatabaseHelper.ExecuteQuery(selectQuery);
 
                     if (dt.Rows.Count > 0)
                     {
-                        // Cập nhật ID đúng định dạng cho đối tượng hoaDon
                         string actualInvoiceId = dt.Rows[0]["MaHoaDon"].ToString();
                         hoaDon.MaHoaDon = actualInvoiceId;
 
-                        // Convert to numeric ID for legacy code compatibility
                         if (actualInvoiceId.StartsWith("HD") && int.TryParse(actualInvoiceId.Substring(2), out int numericId))
                         {
                             return numericId;
                         }
-
-                        // If extraction fails, just return 1 to indicate success
                         return 1;
                     }
+                    else
+                    {
+                        Console.WriteLine("Không thể lấy MaHoaDon sau khi chèn bằng LAST_INSERT_ID!");
+                    }
                 }
-
+                else
+                {
+                    Console.WriteLine($"Chèn hóa đơn thất bại. Rows affected: {rowsAffected}. Parameters: MaPhieuDK={hoaDon.MaPhieuDK}, MaPhieuGiaHan={hoaDon.MaPhieuGiaHan}, MaNV_KeToan={hoaDon.MaNV_KeToan}, TongTienGoc={hoaDon.TongTienGoc}, SoTienGiam={hoaDon.SoTienGiam}, TongThu={hoaDon.TongThu}, TrangThaiTT={hoaDon.TrangThaiTT}");
+                }
                 return 0;
             }
             catch (Exception ex)
@@ -142,20 +138,16 @@ namespace ACCI_WINFORM.DAO
 
         public int XoaHoaDon(string maHoaDon)
         {
-            // Important: Deleting an invoice might require deleting its details first,
-            // or setting up cascading deletes in the database.
-            // This DAO method only deletes the main invoice record.
             string query = "DELETE FROM HoaDon WHERE MaHoaDon = @MaHoaDon";
             var parameters = new[] { new MySqlParameter("@MaHoaDon", maHoaDon) };
             return DatabaseHelper.ExecuteNonQuery(query, parameters);
         }
 
-        // Helper to map object to parameters
         private MySqlParameter[] MapHoaDonToParameters(HoaDon hoaDon)
         {
             return new[]
-           {
-                new MySqlParameter("@MaHoaDon", hoaDon.MaHoaDon), // Needed for update/delete
+            {
+                new MySqlParameter("@MaHoaDon", hoaDon.MaHoaDon),
                 new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK ?? (object)DBNull.Value),
                 new MySqlParameter("@MaPhieuGiaHan", hoaDon.MaPhieuGiaHan ?? (object)DBNull.Value),
                 new MySqlParameter("@MaUuDai", hoaDon.MaUuDai ?? (object)DBNull.Value),
@@ -165,7 +157,7 @@ namespace ACCI_WINFORM.DAO
                 new MySqlParameter("@MaGiaoDich", hoaDon.MaGiaoDich ?? (object)DBNull.Value),
                 new MySqlParameter("@TongTienGoc", hoaDon.TongTienGoc),
                 new MySqlParameter("@SoTienGiam", hoaDon.SoTienGiam),
-                new MySqlParameter("@TongThu", hoaDon.TongThu), // Should be calculated
+                new MySqlParameter("@TongThu", hoaDon.TongThu),
                 new MySqlParameter("@NgayThanhToan", hoaDon.NgayThanhToan ?? (object)DBNull.Value),
                 new MySqlParameter("@TrangThaiTT", hoaDon.TrangThaiTT)
             };

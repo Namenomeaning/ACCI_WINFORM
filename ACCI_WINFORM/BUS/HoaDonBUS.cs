@@ -1,33 +1,31 @@
-﻿using ACCI_WINFORM.DAO; // Added DAO namespace
+﻿using ACCI_WINFORM.DAO;
 using ACCI_WINFORM.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq; // For Sum()
+using System.Linq;
 
 namespace ACCI_WINFORM.BUS
 {
     public class HoaDonBUS
     {
         private HoaDonDAO hoaDonDAO = new HoaDonDAO();
-        private ChiTietHoaDonBUS chiTietHoaDonBUS = new ChiTietHoaDonBUS(); // Dependency for details
+        private ChiTietHoaDonBUS chiTietHoaDonBUS = new ChiTietHoaDonBUS();
         private DanhGiaBUS danhGiaBUS = new DanhGiaBUS();
-        // Add dependencies for UuDaiBUS if needed for validation/calculation
+
         public string ThemHoaDon(string maPhieuDK, string maNhanVien)
         {
             try
             {
-                // Lấy danh sách chi tiết phiếu đăng ký
                 var chiTietPhieuDKBus = new ChiTietPhieuDKBUS();
                 var danhSachChiTiet = chiTietPhieuDKBus.LayDSChiTietPhieuDK(maPhieuDK);
 
                 if (danhSachChiTiet == null || danhSachChiTiet.Count == 0)
                 {
                     Console.WriteLine("Không có chi tiết phiếu đăng ký để tạo hóa đơn.");
-                    return null; // Không có chi tiết để tạo hóa đơn
+                    return null;
                 }
 
-                // Tính tổng tiền dựa trên thông tin đánh giá
                 decimal tongTienGoc = 0;
                 var chiTietHoaDonList = new List<ChiTietHoaDon>();
 
@@ -44,7 +42,7 @@ namespace ACCI_WINFORM.BUS
                             var chiTietHoaDon = new ChiTietHoaDon
                             {
                                 MaDanhGia = danhGia.MaDanhGia,
-                                SoLuong = 1, // Mỗi chi tiết phiếu đăng ký tương ứng với 1 lượt đăng ký
+                                SoLuong = 1,
                                 DonGia = danhGia.DonGia
                             };
                             chiTietHoaDon.ThanhTien = chiTietHoaDon.SoLuong * chiTietHoaDon.DonGia;
@@ -63,26 +61,22 @@ namespace ACCI_WINFORM.BUS
                     }
                 }
 
-                // Tạo đối tượng hóa đơn
                 var hoaDon = new HoaDon
                 {
                     MaPhieuDK = maPhieuDK,
                     MaNV_KeToan = maNhanVien,
                     NgayLap = DateTime.Now,
                     TongTienGoc = tongTienGoc,
-                    SoTienGiam = 0, // Không áp dụng giảm giá
+                    SoTienGiam = 0,
                     TongThu = tongTienGoc,
                     TrangThaiTT = "ChuaTT"
                 };
 
-                // Gọi DAO để thêm hóa đơn
                 int result = hoaDonDAO.ThemHoaDon(hoaDon);
                 if (result > 0)
                 {
-                    // Lấy mã hóa đơn vừa tạo
                     var maHoaDon = hoaDon.MaHoaDon;
 
-                    // Thêm chi tiết hóa đơn
                     foreach (var chiTietHoaDon in chiTietHoaDonList)
                     {
                         chiTietHoaDon.MaHoaDon = maHoaDon;
@@ -92,7 +86,7 @@ namespace ACCI_WINFORM.BUS
                         }
                     }
 
-                    return maHoaDon; // Trả về mã hóa đơn
+                    return maHoaDon;
                 }
                 else
                 {
@@ -104,38 +98,39 @@ namespace ACCI_WINFORM.BUS
                 Console.WriteLine($"Lỗi trong ThemHoaDon: {ex.Message}");
             }
 
-            return null; // Thêm hóa đơn thất bại
+            return null;
         }
 
         public string ThemHoaDonTheoPhieuGiaHan(HoaDon hoaDon)
         {
             if (string.IsNullOrEmpty(hoaDon.MaPhieuGiaHan))
             {
-                return null;
+                throw new ArgumentException("Mã phiếu gia hạn không được để trống khi tạo hóa đơn!");
             }
 
-            hoaDon.MaPhieuDK = null; // Đảm bảo MaPhieuDK là null khi liên kết với PhieuGiaHan
+            hoaDon.MaPhieuDK = null;
 
-            if (hoaDonDAO.ThemHoaDon(hoaDon) > 0)
+            try
             {
-                var dt = hoaDonDAO.LayHoaDonMoiNhat(); // Giả sử DAO có phương thức này
-                if (dt != null && dt.Rows.Count > 0)
+                int result = hoaDonDAO.ThemHoaDon(hoaDon);
+                if (result > 0)
                 {
-                    return dt.Rows[0]["MaHoaDon"].ToString();
+                    return hoaDon.MaHoaDon; // Trả về MaHoaDon đã được gán trong HoaDonDAO
                 }
+                throw new Exception("Không thể thêm hóa đơn vào cơ sở dữ liệu!");
             }
-
-            return null;
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi thêm hóa đơn theo phiếu gia hạn: {ex.Message}");
+            }
         }
+
         public HoaDon LayHoaDon(string maHoaDon)
         {
             DataTable dt = hoaDonDAO.LayHoaDon(maHoaDon);
             if (dt == null || dt.Rows.Count == 0)
                 return null;
 
-            // Optionally load details here as well
-            // var hoaDon = MapDataRowToHoaDon(dt.Rows[0]);
-            // hoaDon.ChiTietList = chiTietHoaDonBUS.LayDSChiTietHoaDon(maHoaDon); // Assuming HoaDon model has a list property
             return MapDataRowToHoaDon(dt.Rows[0]);
         }
 
@@ -147,7 +142,6 @@ namespace ACCI_WINFORM.BUS
             {
                 foreach (DataRow row in dt.Rows)
                 {
-                    // Optionally load details for each invoice
                     hoaDonList.Add(MapDataRowToHoaDon(row));
                 }
             }
@@ -156,36 +150,27 @@ namespace ACCI_WINFORM.BUS
 
         public bool CapNhatHoaDon(HoaDon hoaDon, List<ChiTietHoaDon> chiTietList)
         {
-            // --- Business Logic ---
-            // 1. Validation
             if (hoaDon == null || string.IsNullOrWhiteSpace(hoaDon.MaHoaDon) || chiTietList == null) return false;
-            // Cannot change MaHoaDon. Check if invoice is already paid?
 
-            // 2. Recalculate totals
             hoaDon.TongTienGoc = chiTietList.Sum(ct => ct.SoLuong * ct.DonGia);
             hoaDon.SoTienGiam = TinhTienGiam(hoaDon.MaUuDai, hoaDon.TongTienGoc);
             hoaDon.TongThu = hoaDon.TongTienGoc - hoaDon.SoTienGiam;
 
-            // --- Database Operations (Transaction Recommended) ---
-            // 1. Update HoaDon Header
             int updateHeaderResult = hoaDonDAO.CapNhatHoaDon(hoaDon);
-            if (updateHeaderResult <= 0) return false; // Update failed
+            if (updateHeaderResult <= 0) return false;
 
-            // 2. Update Details (Common approach: Delete existing, Insert new)
             bool deleteDetailsResult = chiTietHoaDonBUS.XoaChiTietTheoMaHoaDon(hoaDon.MaHoaDon);
-            // Check deleteDetailsResult if needed, though proceeding might be acceptable if inserts handle uniqueness
 
             foreach (var chiTiet in chiTietList)
             {
-                chiTiet.MaHoaDon = hoaDon.MaHoaDon; // Ensure link
+                chiTiet.MaHoaDon = hoaDon.MaHoaDon;
                 if (!chiTietHoaDonBUS.ThemChiTietHoaDon(chiTiet))
                 {
-                    // Handle error, rollback...
                     return false;
                 }
             }
 
-            return true; // Success
+            return true;
         }
 
         public bool CapNhatTrangThaiThanhToan(string maHoaDon, string phuongThuc, string maGiaoDich = null)
@@ -193,69 +178,51 @@ namespace ACCI_WINFORM.BUS
             var hoaDon = LayHoaDon(maHoaDon);
             if (hoaDon == null || hoaDon.TrangThaiTT == "DaThanhToan")
             {
-                return false; // Not found or already paid
+                return false;
             }
 
             hoaDon.TrangThaiTT = "DaThanhToan";
             hoaDon.NgayThanhToan = DateTime.Now;
             hoaDon.PhuongThuc = phuongThuc;
-            hoaDon.MaGiaoDich = maGiaoDich; // Can be null for cash
+            hoaDon.MaGiaoDich = maGiaoDich;
 
             return hoaDonDAO.CapNhatHoaDon(hoaDon) > 0;
         }
 
-
         public bool XoaHoaDon(string maHoaDon)
         {
-            // Business logic: Cannot delete if already paid?
             var hoaDon = LayHoaDon(maHoaDon);
             if (hoaDon != null && hoaDon.TrangThaiTT == "DaThanhToan")
             {
                 return false;
             }
 
-            // --- Database Operations (Transaction Recommended) ---
-            // 1. Delete Details first
             bool deleteDetailsResult = chiTietHoaDonBUS.XoaChiTietTheoMaHoaDon(maHoaDon);
-            // Handle deleteDetailsResult? If details fail to delete, should header be deleted?
-
-            // 2. Delete Header
             int deleteHeaderResult = hoaDonDAO.XoaHoaDon(maHoaDon);
 
-            return deleteHeaderResult > 0; // Return success if header deletion worked
+            return deleteHeaderResult > 0;
         }
 
-        // --- Helper Methods ---
         private decimal TinhTienGiam(string maUuDai, decimal tongTienGoc)
         {
             if (string.IsNullOrWhiteSpace(maUuDai)) return 0;
 
-            UuDaiBUS uuDaiBus = new UuDaiBUS(); // Dependency
+            UuDaiBUS uuDaiBus = new UuDaiBUS();
             var uuDai = uuDaiBus.LayUuDai(maUuDai);
 
             if (uuDai == null || uuDai.TrangThai != "HoatDong" || DateTime.Now < uuDai.NgayBD || DateTime.Now > uuDai.NgayKT)
             {
-                return 0; // Invalid or inactive promotion
+                return 0;
             }
 
-            // Add logic based on uuDai.Loai ("PhanTram", "SoTien") and uuDai.GiaTri
-            // Example:
-            // if (uuDai.Loai == "PhanTram") {
-            //     return tongTienGoc * (uuDai.GiaTri / 100);
-            // } else if (uuDai.Loai == "SoTien") {
-            //     return Math.Min(uuDai.GiaTri, tongTienGoc); // Cannot reduce below zero
-            // }
-
-            return 0; // Default if type not handled
+            return 0;
         }
 
-        // Kiểm tra phiếu đăng ký đã có hóa đơn hay chưa
         public bool KiemTraPhieuDKDaCoHoaDon(string maPhieuDK)
         {
             return hoaDonDAO.KiemTraPhieuDKDaCoHoaDon(maPhieuDK);
         }
 
-        // Lấy hóa đơn theo mã phiếu đăng ký
         public HoaDon LayHoaDonTheoPhieuDK(string maPhieuDK)
         {
             return hoaDonDAO.LayHoaDonTheoPhieuDK(maPhieuDK);
@@ -280,20 +247,20 @@ namespace ACCI_WINFORM.BUS
                 TrangThaiTT = row["TrangThaiTT"].ToString()
             };
         }
+
         public bool CapNhatThanhToan(string maHoaDon, string phuongThuc, string maGiaoDich = null)
         {
             var hoaDon = LayHoaDon(maHoaDon);
             if (hoaDon == null || hoaDon.NgayThanhToan != null)
             {
-                return false; // Not found or already paid
+                return false;
             }
 
             hoaDon.NgayThanhToan = DateTime.Now;
             hoaDon.PhuongThuc = phuongThuc;
-            hoaDon.MaGiaoDich = maGiaoDich; // Can be null for cash
+            hoaDon.MaGiaoDich = maGiaoDich;
 
-            // Since we removed TrangThaiTT from our model but database still requires it
-            hoaDon.TrangThaiTT = "DaTT"; // Set the status to paid
+            hoaDon.TrangThaiTT = "DaTT";
 
             return hoaDonDAO.CapNhatHoaDon(hoaDon) > 0;
         }

@@ -204,6 +204,7 @@
             btnQuayLai.TabIndex = 7;
             btnQuayLai.Text = "Quay lại";
             btnQuayLai.UseVisualStyleBackColor = true;
+            btnQuayLai.Click += new System.EventHandler(this.btnQuayLai_Click); // Thêm dòng này
             // 
             // KiemTraGiaHanForm
             // 

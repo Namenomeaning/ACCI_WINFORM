@@ -12,7 +12,7 @@ namespace ACCI_WINFORM.Forms
         private readonly string maPhieuDK;
         private readonly string maLichThiCu;
         private readonly bool truongHopDacBiet;
-        private readonly string maNV; // Thêm biến để lưu MaNV
+        private readonly string maNV;
 
         private readonly ThiSinhBUS thiSinhBus = new ThiSinhBUS();
         private readonly ChiTietPhieuDKBUS chiTietPhieuDKBus = new ChiTietPhieuDKBUS();
@@ -32,7 +32,7 @@ namespace ACCI_WINFORM.Forms
             this.maPhieuDK = maPhieuDK;
             this.maLichThiCu = maLichThiCu;
             this.truongHopDacBiet = truongHopDacBiet;
-            this.maNV = maNV; // Lưu MaNV
+            this.maNV = maNV;
             LoadData();
         }
 
@@ -107,7 +107,6 @@ namespace ACCI_WINFORM.Forms
                 if (lichThiList.Count == 0)
                 {
                     MessageBox.Show("Không có lịch thi mới hợp lệ để gia hạn!", "Thông Báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    // Không gọi this.Close() ngay, để form hiển thị thông báo và người dùng tự đóng
                     return;
                 }
 
@@ -152,7 +151,7 @@ namespace ACCI_WINFORM.Forms
                     MaLichThi_Moi = maLichThiMoi,
                     LyDo = lyDo,
                     NgayYC = DateTime.Now,
-                    MaNV_XuLy = maNV, // Sử dụng MaNV của người dùng đăng nhập
+                    MaNV_XuLy = maNV,
                     TrangThai = "ChoThanhToan",
                     MaPhiGiaHan = truongHopDacBiet ? null : "PHG1"
                 };
@@ -188,12 +187,38 @@ namespace ACCI_WINFORM.Forms
                 {
                     throw new Exception("Không thể cập nhật chi tiết phiếu đăng ký!");
                 }
+
+                // 4. Update SoLuongDK for old LichThi
+                var lichThiCuData = lichThiBus.LayLichThi(maLichThiCu);
+                if (lichThiCuData == null)
+                {
+                    throw new Exception("Không tìm thấy lịch thi cũ để giảm số lượng đăng ký!");
+                }
+                if (lichThiCuData.SoLuongDK <= 0)
+                {
+                    throw new Exception($"Không thể giảm số lượng đăng ký cho lịch thi cũ ({maLichThiCu}) vì số lượng đăng ký hiện tại là {lichThiCuData.SoLuongDK}!");
+                }
                 if (!lichThiBus.GiamSoLuongDK(maLichThiCu))
                 {
-                    throw new Exception("Không thể giảm số lượng đăng ký cho lịch thi cũ!");
+                    throw new Exception($"Không thể giảm số lượng đăng ký cho lịch thi cũ ({maLichThiCu})! Số lượng đăng ký hiện tại: {lichThiCuData.SoLuongDK}.");
                 }
 
-                // 5. Insert into HoaDon (only if not a special case)
+                // 5. Update SoLuongDK for new LichThi
+                var lichThiMoiData = lichThiBus.LayLichThi(maLichThiMoi);
+                if (lichThiMoiData == null)
+                {
+                    throw new Exception($"Không tìm thấy lịch thi mới ({maLichThiMoi}) để tăng số lượng đăng ký!");
+                }
+                if (lichThiMoiData.SoLuongDK >= lichThiMoiData.SoLuongMax)
+                {
+                    throw new Exception($"Không thể tăng số lượng đăng ký cho lịch thi mới ({maLichThiMoi}) vì đã đạt tối đa ({lichThiMoiData.SoLuongMax})!");
+                }
+                if (!lichThiBus.TangSoLuongDK(maLichThiMoi))
+                {
+                    throw new Exception($"Không thể tăng số lượng đăng ký cho lịch thi mới ({maLichThiMoi})! Số lượng hiện tại: {lichThiMoiData.SoLuongDK}.");
+                }
+
+                // 6. Insert into HoaDon (only if not a special case)
                 if (!truongHopDacBiet)
                 {
                     decimal donGia = phieuGiaHanBus.LayDonGiaPhiGiaHan("PHG1");
@@ -207,6 +232,7 @@ namespace ACCI_WINFORM.Forms
                         TongThu = donGia,
                         TrangThaiTT = "ChuaTT"
                     };
+                    Console.WriteLine($"Thêm hóa đơn: MaPhieuGiaHan={hoaDon.MaPhieuGiaHan}, MaNV_KeToan={hoaDon.MaNV_KeToan}, TongTienGoc={hoaDon.TongTienGoc}, SoTienGiam={hoaDon.SoTienGiam}, TongThu={hoaDon.TongThu}, TrangThaiTT={hoaDon.TrangThaiTT}");
                     string maHoaDon = hoaDonBus.ThemHoaDonTheoPhieuGiaHan(hoaDon);
                     if (string.IsNullOrEmpty(maHoaDon))
                     {

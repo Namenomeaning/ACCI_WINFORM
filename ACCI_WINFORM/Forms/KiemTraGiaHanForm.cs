@@ -2,6 +2,7 @@
 using ACCI_WINFORM.Models;
 using System;
 using System.Windows.Forms;
+using ACCI_WINFORM; // Để tham chiếu MainForm
 
 namespace ACCI_WINFORM.Forms
 {
@@ -106,7 +107,7 @@ namespace ACCI_WINFORM.Forms
                     return;
                 }
 
-                soLanGiaHanConLai = 2 - phieuDK.SoLanGiaHan; // Sửa lại: Tính số lần gia hạn còn lại
+                soLanGiaHanConLai = phieuDK.SoLanGiaHan;
                 thoiGianThi = lichThi.NgayThi.Date + lichThi.GioThi;
 
                 // Display results
@@ -149,6 +150,11 @@ namespace ACCI_WINFORM.Forms
                     this.Close();
                 }
             }
+        }
+        private void btnQuayLai_Click(object sender, EventArgs e)
+        {
+            new MainForm().Show();
+            this.Close();
         }
     }
 }
