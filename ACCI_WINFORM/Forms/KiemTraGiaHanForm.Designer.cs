@@ -28,173 +28,221 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.lblTitle = new System.Windows.Forms.Label();
-            this.lblMaThiSinh = new System.Windows.Forms.Label();
-            this.txtMaThiSinh = new System.Windows.Forms.TextBox();
-            this.lblMaDanhGia = new System.Windows.Forms.Label();
-            this.cbMaDanhGia = new System.Windows.Forms.ComboBox();
-            this.btnKiemTra = new System.Windows.Forms.Button();
-            this.lblSoLanGiaHan = new System.Windows.Forms.Label();
-            this.lblThoiGianGiaHan = new System.Windows.Forms.Label();
-            this.lblTruongHopDacBiet = new System.Windows.Forms.Label();
-            this.cbTruongHopDacBiet = new System.Windows.Forms.CheckBox();
-            this.lblHopLe = new System.Windows.Forms.Label();
-            this.btnGiaHan = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            lblTitle = new Label();
+            groupBox1 = new GroupBox();
+            btnKiemTra = new Button();
+            txtMaThiSinh = new TextBox();
+            lblMaThiSinh = new Label();
+            groupBox2 = new GroupBox();
+            cbTruongHopDacBiet = new CheckBox();
+            lblTruongHopDacBiet = new Label();
+            lblThoiGianGiaHan = new Label();
+            lblSoLanGiaHan = new Label();
+            lblHopLe = new Label();
+            cbMaDanhGia = new ComboBox();
+            lblMaDanhGia = new Label();
+            btnGiaHan = new Button();
+            btnQuayLai = new Button();
+            groupBox1.SuspendLayout();
+            groupBox2.SuspendLayout();
+            SuspendLayout();
             // 
             // lblTitle
             // 
-            this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitle.Location = new System.Drawing.Point(12, 9);
-            this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(184, 24);
-            this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "KIỂM TRA GIA HẠN";
+            lblTitle.AutoSize = true;
+            lblTitle.Font = new Font("Microsoft Sans Serif", 16F, FontStyle.Bold, GraphicsUnit.Point);
+            lblTitle.Location = new Point(338, 7);
+            lblTitle.Name = "lblTitle";
+            // Fixing the assignment of lblTitle.Size
+            lblTitle.Size = new Size(233, 26);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "KIỂM TRA GIA HẠN";
             // 
-            // lblMaThiSinh
+            // groupBox1
             // 
-            this.lblMaThiSinh.AutoSize = true;
-            this.lblMaThiSinh.Location = new System.Drawing.Point(12, 50);
-            this.lblMaThiSinh.Name = "lblMaThiSinh";
-            this.lblMaThiSinh.Size = new System.Drawing.Size(81, 13);
-            this.lblMaThiSinh.TabIndex = 1;
-            this.lblMaThiSinh.Text = "Mã Thí Sinh:";
-            // 
-            // txtMaThiSinh
-            // 
-            this.txtMaThiSinh.Location = new System.Drawing.Point(99, 47);
-            this.txtMaThiSinh.Name = "txtMaThiSinh";
-            this.txtMaThiSinh.Size = new System.Drawing.Size(200, 20);
-            this.txtMaThiSinh.TabIndex = 2;
-            // 
-            // lblMaDanhGia
-            // 
-            this.lblMaDanhGia.AutoSize = true;
-            this.lblMaDanhGia.Location = new System.Drawing.Point(12, 80);
-            this.lblMaDanhGia.Name = "lblMaDanhGia";
-            this.lblMaDanhGia.Size = new System.Drawing.Size(81, 13);
-            this.lblMaDanhGia.TabIndex = 3;
-            this.lblMaDanhGia.Text = "Mã Đánh Giá:";
-            // 
-            // cbMaDanhGia
-            // 
-            this.cbMaDanhGia.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbMaDanhGia.FormattingEnabled = true;
-            this.cbMaDanhGia.Location = new System.Drawing.Point(99, 77);
-            this.cbMaDanhGia.Name = "cbMaDanhGia";
-            this.cbMaDanhGia.Size = new System.Drawing.Size(200, 21);
-            this.cbMaDanhGia.TabIndex = 4;
+            groupBox1.Controls.Add(btnKiemTra);
+            groupBox1.Controls.Add(txtMaThiSinh);
+            groupBox1.Controls.Add(lblMaThiSinh);
+            groupBox1.Location = new Point(10, 38);
+            groupBox1.Margin = new Padding(3, 2, 3, 2);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Padding = new Padding(3, 2, 3, 2);
+            groupBox1.Size = new Size(820, 54);
+            groupBox1.TabIndex = 1;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Tìm kiếm";
             // 
             // btnKiemTra
             // 
-            this.btnKiemTra.BackColor = System.Drawing.Color.Black;
-            this.btnKiemTra.ForeColor = System.Drawing.Color.White;
-            this.btnKiemTra.Location = new System.Drawing.Point(305, 77);
-            this.btnKiemTra.Name = "btnKiemTra";
-            this.btnKiemTra.Size = new System.Drawing.Size(75, 23);
-            this.btnKiemTra.TabIndex = 5;
-            this.btnKiemTra.Text = "Kiểm tra";
-            this.btnKiemTra.UseVisualStyleBackColor = false;
-            this.btnKiemTra.Click += new System.EventHandler(this.btnKiemTra_Click);
+            btnKiemTra.Location = new Point(429, 20);
+            btnKiemTra.Margin = new Padding(3, 2, 3, 2);
+            btnKiemTra.Name = "btnKiemTra";
+            btnKiemTra.Size = new Size(82, 22);
+            btnKiemTra.TabIndex = 2;
+            btnKiemTra.Text = "Kiểm tra";
+            btnKiemTra.UseVisualStyleBackColor = true;
+            btnKiemTra.Click += btnKiemTra_Click;
             // 
-            // lblSoLanGiaHan
+            // txtMaThiSinh
             // 
-            this.lblSoLanGiaHan.AutoSize = true;
-            this.lblSoLanGiaHan.Location = new System.Drawing.Point(12, 110);
-            this.lblSoLanGiaHan.Name = "lblSoLanGiaHan";
-            this.lblSoLanGiaHan.Size = new System.Drawing.Size(121, 13);
-            this.lblSoLanGiaHan.TabIndex = 6;
-            this.lblSoLanGiaHan.Text = "Số lần gia hạn còn lại: ";
+            txtMaThiSinh.Location = new Point(145, 20);
+            txtMaThiSinh.Margin = new Padding(3, 2, 3, 2);
+            txtMaThiSinh.Name = "txtMaThiSinh";
+            txtMaThiSinh.Size = new Size(260, 23);
+            txtMaThiSinh.TabIndex = 1;
             // 
-            // lblThoiGianGiaHan
+            // lblMaThiSinh
             // 
-            this.lblThoiGianGiaHan.AutoSize = true;
-            this.lblThoiGianGiaHan.Location = new System.Drawing.Point(12, 130);
-            this.lblThoiGianGiaHan.Name = "lblThoiGianGiaHan";
-            this.lblThoiGianGiaHan.Size = new System.Drawing.Size(121, 13);
-            this.lblThoiGianGiaHan.TabIndex = 7;
-            this.lblThoiGianGiaHan.Text = "Thời gian gia hạn: ";
+            lblMaThiSinh.AutoSize = true;
+            lblMaThiSinh.Location = new Point(20, 22);
+            lblMaThiSinh.Name = "lblMaThiSinh";
+            lblMaThiSinh.Size = new Size(70, 15);
+            lblMaThiSinh.TabIndex = 0;
+            lblMaThiSinh.Text = "Mã thí sinh:";
             // 
-            // lblTruongHopDacBiet
+            // groupBox2
             // 
-            this.lblTruongHopDacBiet.AutoSize = true;
-            this.lblTruongHopDacBiet.Location = new System.Drawing.Point(12, 150);
-            this.lblTruongHopDacBiet.Name = "lblTruongHopDacBiet";
-            this.lblTruongHopDacBiet.Size = new System.Drawing.Size(121, 13);
-            this.lblTruongHopDacBiet.TabIndex = 8;
-            this.lblTruongHopDacBiet.Text = "Trường hợp đặc biệt: ";
+            groupBox2.Controls.Add(cbTruongHopDacBiet);
+            groupBox2.Controls.Add(lblTruongHopDacBiet);
+            groupBox2.Controls.Add(lblThoiGianGiaHan);
+            groupBox2.Controls.Add(lblSoLanGiaHan);
+            groupBox2.Controls.Add(lblHopLe);
+            groupBox2.Controls.Add(cbMaDanhGia);
+            groupBox2.Controls.Add(lblMaDanhGia);
+            groupBox2.Location = new Point(10, 97);
+            groupBox2.Margin = new Padding(3, 2, 3, 2);
+            groupBox2.Name = "groupBox2";
+            groupBox2.Padding = new Padding(3, 2, 3, 2);
+            groupBox2.Size = new Size(820, 146);
+            groupBox2.TabIndex = 2;
+            groupBox2.TabStop = false;
+            groupBox2.Text = "Thông tin gia hạn";
             // 
             // cbTruongHopDacBiet
             // 
-            this.cbTruongHopDacBiet.AutoSize = true;
-            this.cbTruongHopDacBiet.Location = new System.Drawing.Point(139, 148);
-            this.cbTruongHopDacBiet.Name = "cbTruongHopDacBiet";
-            this.cbTruongHopDacBiet.Size = new System.Drawing.Size(15, 14);
-            this.cbTruongHopDacBiet.TabIndex = 9;
-            this.cbTruongHopDacBiet.UseVisualStyleBackColor = true;
+            cbTruongHopDacBiet.AutoSize = true;
+            cbTruongHopDacBiet.Location = new Point(163, 104);
+            cbTruongHopDacBiet.Name = "cbTruongHopDacBiet";
+            cbTruongHopDacBiet.Size = new Size(15, 14);
+            cbTruongHopDacBiet.TabIndex = 9;
+            cbTruongHopDacBiet.UseVisualStyleBackColor = true;
+            // 
+            // lblTruongHopDacBiet
+            // 
+            lblTruongHopDacBiet.AutoSize = true;
+            lblTruongHopDacBiet.Location = new Point(43, 104);
+            lblTruongHopDacBiet.Name = "lblTruongHopDacBiet";
+            lblTruongHopDacBiet.Size = new Size(114, 15);
+            lblTruongHopDacBiet.TabIndex = 8;
+            lblTruongHopDacBiet.Text = "Trường hợp đặc biệt:";
+            // 
+            // lblThoiGianGiaHan
+            // 
+            lblThoiGianGiaHan.AutoSize = true;
+            lblThoiGianGiaHan.Location = new Point(43, 82);
+            lblThoiGianGiaHan.Name = "lblThoiGianGiaHan";
+            lblThoiGianGiaHan.Size = new Size(99, 15);
+            lblThoiGianGiaHan.TabIndex = 7;
+            lblThoiGianGiaHan.Text = "Thời gian gia hạn:";
+            // 
+            // lblSoLanGiaHan
+            // 
+            lblSoLanGiaHan.AutoSize = true;
+            lblSoLanGiaHan.Location = new Point(43, 57);
+            lblSoLanGiaHan.Name = "lblSoLanGiaHan";
+            lblSoLanGiaHan.Size = new Size(118, 15);
+            lblSoLanGiaHan.TabIndex = 6;
+            lblSoLanGiaHan.Text = "Số lần gia hạn còn lại:";
             // 
             // lblHopLe
             // 
-            this.lblHopLe.AutoSize = true;
-            this.lblHopLe.ForeColor = System.Drawing.Color.Green;
-            this.lblHopLe.Location = new System.Drawing.Point(12, 170);
-            this.lblHopLe.Name = "lblHopLe";
-            this.lblHopLe.Size = new System.Drawing.Size(0, 13);
-            this.lblHopLe.TabIndex = 10;
-            this.lblHopLe.Text = "";
+            lblHopLe.AutoSize = true;
+            lblHopLe.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            lblHopLe.ForeColor = System.Drawing.Color.Green;
+            lblHopLe.Location = new Point(43, 126);
+            lblHopLe.Name = "lblHopLe";
+            lblHopLe.Size = new Size(0, 15);
+            lblHopLe.TabIndex = 10;
+            // 
+            // cbMaDanhGia
+            // 
+            cbMaDanhGia.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cbMaDanhGia.FormattingEnabled = true;
+            cbMaDanhGia.Location = new Point(119, 26);
+            cbMaDanhGia.Margin = new Padding(3, 2, 3, 2);
+            cbMaDanhGia.Name = "cbMaDanhGia";
+            cbMaDanhGia.Size = new Size(180, 23);
+            cbMaDanhGia.TabIndex = 4;
+            // 
+            // lblMaDanhGia
+            // 
+            lblMaDanhGia.AutoSize = true;
+            lblMaDanhGia.Location = new Point(43, 29);
+            lblMaDanhGia.Name = "lblMaDanhGia";
+            lblMaDanhGia.Size = new Size(72, 15);
+            lblMaDanhGia.TabIndex = 3;
+            lblMaDanhGia.Text = "Mã đánh giá:";
             // 
             // btnGiaHan
             // 
-            this.btnGiaHan.BackColor = System.Drawing.Color.Black;
-            this.btnGiaHan.ForeColor = System.Drawing.Color.White;
-            this.btnGiaHan.Location = new System.Drawing.Point(305, 170);
-            this.btnGiaHan.Name = "btnGiaHan";
-            this.btnGiaHan.Size = new System.Drawing.Size(75, 23);
-            this.btnGiaHan.TabIndex = 11;
-            this.btnGiaHan.Text = "Gia Hạn";
-            this.btnGiaHan.UseVisualStyleBackColor = false;
-            this.btnGiaHan.Visible = false;
-            this.btnGiaHan.Click += new System.EventHandler(this.btnGiaHan_Click);
+            btnGiaHan.Location = new Point(650, 250);
+            btnGiaHan.Margin = new Padding(3, 2, 3, 2);
+            btnGiaHan.Name = "btnGiaHan";
+            btnGiaHan.Size = new Size(82, 25);
+            btnGiaHan.TabIndex = 11;
+            btnGiaHan.Text = "Gia hạn";
+            btnGiaHan.UseVisualStyleBackColor = true;
+            btnGiaHan.Visible = false;
+            btnGiaHan.Click += btnGiaHan_Click;
+            // 
+            // btnQuayLai
+            // 
+            btnQuayLai.Location = new Point(740, 250);
+            btnQuayLai.Margin = new Padding(3, 2, 3, 2);
+            btnQuayLai.Name = "btnQuayLai";
+            btnQuayLai.Size = new Size(82, 25);
+            btnQuayLai.TabIndex = 7;
+            btnQuayLai.Text = "Quay lại";
+            btnQuayLai.UseVisualStyleBackColor = true;
             // 
             // KiemTraGiaHanForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(400, 220);
-            this.Controls.Add(this.btnGiaHan);
-            this.Controls.Add(this.lblHopLe);
-            this.Controls.Add(this.cbTruongHopDacBiet);
-            this.Controls.Add(this.lblTruongHopDacBiet);
-            this.Controls.Add(this.lblThoiGianGiaHan);
-            this.Controls.Add(this.lblSoLanGiaHan);
-            this.Controls.Add(this.btnKiemTra);
-            this.Controls.Add(this.cbMaDanhGia);
-            this.Controls.Add(this.lblMaDanhGia);
-            this.Controls.Add(this.txtMaThiSinh);
-            this.Controls.Add(this.lblMaThiSinh);
-            this.Controls.Add(this.lblTitle);
-            this.Name = "KiemTraGiaHanForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Kiểm Tra Gia Hạn";
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(840, 290);
+            Controls.Add(btnQuayLai);
+            Controls.Add(btnGiaHan);
+            Controls.Add(groupBox2);
+            Controls.Add(groupBox1);
+            Controls.Add(lblTitle);
+            Margin = new Padding(3, 2, 3, 2);
+            Name = "KiemTraGiaHanForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "Kiểm Tra Gia Hạn";
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
+            groupBox2.ResumeLayout(false);
+            groupBox2.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
-        private System.Windows.Forms.Label lblTitle;
-        private System.Windows.Forms.Label lblMaThiSinh;
-        private System.Windows.Forms.TextBox txtMaThiSinh;
-        private System.Windows.Forms.Label lblMaDanhGia;
-        private System.Windows.Forms.ComboBox cbMaDanhGia;
-        private System.Windows.Forms.Button btnKiemTra;
-        private System.Windows.Forms.Label lblSoLanGiaHan;
-        private System.Windows.Forms.Label lblThoiGianGiaHan;
-        private System.Windows.Forms.Label lblTruongHopDacBiet;
-        private System.Windows.Forms.CheckBox cbTruongHopDacBiet;
-        private System.Windows.Forms.Label lblHopLe;
-        private System.Windows.Forms.Button btnGiaHan;
+        private Label lblTitle;
+        private GroupBox groupBox1;
+        private Button btnKiemTra;
+        private TextBox txtMaThiSinh;
+        private Label lblMaThiSinh;
+        private GroupBox groupBox2;
+        private Label lblMaDanhGia;
+        private ComboBox cbMaDanhGia;
+        private Label lblSoLanGiaHan;
+        private Label lblThoiGianGiaHan;
+        private Label lblTruongHopDacBiet;
+        private CheckBox cbTruongHopDacBiet;
+        private Label lblHopLe;
+        private Button btnGiaHan;
+        private Button btnQuayLai;
     }
 }
