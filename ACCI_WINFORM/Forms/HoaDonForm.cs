@@ -135,9 +135,8 @@ namespace ACCI_WINFORM.Forms
                 txtMaGiaoDich.Text = "(chưa có)";
             }
 
-            // Show/hide payment buttons based on payment status
+            // Show/hide payment button based on payment status
             btnThanhToan.Visible = currentHoaDon.TrangThaiTT != "DaTT";
-            btnHuyHoaDon.Visible = currentHoaDon.TrangThaiTT != "DaTT";
         }
 
         private string GetTrangThaiText(string trangThaiTT)
@@ -161,38 +160,86 @@ namespace ACCI_WINFORM.Forms
             };
         }
 
+        // Helper class for grouped items
+        private class ChiTietTongHop
+        {
+            public string MaDanhGia { get; set; }
+            public string TenDanhGia { get; set; }
+            public int SoLuong { get; set; }
+            public decimal DonGia { get; set; }
+            public decimal ThanhTien { get; set; }
+        }
+
         private void DisplayChiTietHoaDon()
         {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("MaDanhGia", typeof(string));
-            dt.Columns.Add("TenDanhGia", typeof(string));
-            dt.Columns.Add("SoLuong", typeof(int));
-            dt.Columns.Add("DonGia", typeof(decimal));
-            dt.Columns.Add("ThanhTien", typeof(decimal));
-
-            foreach (var chiTiet in chiTietHoaDons)
+            try
             {
-                // Get the DanhGia information
-                string tenDanhGia = "";
-                if (!string.IsNullOrEmpty(chiTiet.MaDanhGia))
+                // Create a dictionary to group items by MaDanhGia
+                Dictionary<string, ChiTietTongHop> groupedItems = new Dictionary<string, ChiTietTongHop>();
+
+                foreach (var chiTiet in chiTietHoaDons)
                 {
-                    var danhGia = danhGiaBUS.LayDanhGia(chiTiet.MaDanhGia);
-                    if (danhGia != null)
+                    if (!string.IsNullOrEmpty(chiTiet.MaDanhGia))
                     {
-                        tenDanhGia = danhGia.TenDanhGia;
+                        string maDanhGia = chiTiet.MaDanhGia;
+
+                        // Get the DanhGia information if we haven't already
+                        if (!groupedItems.ContainsKey(maDanhGia))
+                        {
+                            var danhGia = danhGiaBUS.LayDanhGia(maDanhGia);
+                            string tenDanhGia = danhGia != null ? danhGia.TenDanhGia : "(không xác định)";
+
+                            groupedItems[maDanhGia] = new ChiTietTongHop
+                            {
+                                MaDanhGia = maDanhGia,
+                                TenDanhGia = tenDanhGia,
+                                SoLuong = 0,
+                                DonGia = chiTiet.DonGia,
+                                ThanhTien = 0
+                            };
+                        }
+
+                        // Add this item's quantity and amount
+                        groupedItems[maDanhGia].SoLuong += chiTiet.SoLuong;
+                        groupedItems[maDanhGia].ThanhTien += chiTiet.ThanhTien;
                     }
                 }
 
-                dt.Rows.Add(
-                    chiTiet.MaDanhGia,
-                    tenDanhGia,
-                    chiTiet.SoLuong,
-                    chiTiet.DonGia,
-                    chiTiet.ThanhTien
-                );
-            }
+                // Create a DataTable with aggregated data
+                DataTable dt = new DataTable();
+                dt.Columns.Add("MaDanhGia", typeof(string));
+                dt.Columns.Add("TenDanhGia", typeof(string));
+                dt.Columns.Add("SoLuong", typeof(int));
+                dt.Columns.Add("DonGia", typeof(decimal));
+                dt.Columns.Add("ThanhTien", typeof(decimal));
 
-            dgvChiTietHoaDon.DataSource = dt;
+                // Add grouped data to DataTable
+                foreach (var item in groupedItems.Values)
+                {
+                    dt.Rows.Add(
+                        item.MaDanhGia,
+                        item.TenDanhGia,
+                        item.SoLuong,
+                        item.DonGia,
+                        item.ThanhTien
+                    );
+                }
+
+                dgvChiTietHoaDon.DataSource = dt;
+
+                // Add a total row at the bottom of the DataGridView
+                if (dt.Rows.Count > 0)
+                {
+                    decimal tongTien = groupedItems.Values.Sum(item => item.ThanhTien);
+
+                    // You could add a summary label below the grid instead of this approach
+                    // For example: lblTongCong.Text = $"Tổng cộng: {string.Format("{0:N0} VND", tongTien)}";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi hiển thị chi tiết hóa đơn: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnThanhToan_Click(object sender, EventArgs e)
@@ -272,38 +319,9 @@ namespace ACCI_WINFORM.Forms
             }
         }
 
-        private void btnHuyHoaDon_Click(object sender, EventArgs e)
-        {
-            if (currentHoaDon.TrangThaiTT == "DaTT")
-            {
-                MessageBox.Show("Không thể hủy hóa đơn đã thanh toán!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (MessageBox.Show("Bạn có chắc chắn muốn hủy hóa đơn này?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-            {
-                // Update invoice status to Cancelled
-                currentHoaDon.TrangThaiTT = "Huy";
-                if (hoaDonBUS.CapNhatHoaDon(currentHoaDon, chiTietHoaDons))
-                {
-                    MessageBox.Show("Đã hủy hóa đơn thành công!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadHoaDonData(currentHoaDon.MaHoaDon); // Refresh data
-                }
-                else
-                {
-                    MessageBox.Show("Hủy hóa đơn thất bại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
         private void btnDong_Click(object sender, EventArgs e)
         {
             this.Close();
-        }
-
-        private void btnIn_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show("Tính năng in hóa đơn đang được phát triển!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }

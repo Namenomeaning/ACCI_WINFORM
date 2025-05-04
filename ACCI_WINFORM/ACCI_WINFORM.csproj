@@ -14,9 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Forms\HoaDonForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="Forms\HoaDonForm.cs" />
   </ItemGroup>
 
 </Project>

@@ -91,9 +91,8 @@ namespace ACCI_WINFORM.Forms
             // Clear DataGridView
             dgvChiTietPhieu.DataSource = null;
 
-            // Disable buttons (removed btnCapNhatTrangThai)
+            // Disable buttons
             btnTaoHoaDon.Enabled = false;
-            btnInPhieu.Enabled = false;
         }
 
         private void btnTimKiem_Click(object sender, EventArgs e)
@@ -124,9 +123,6 @@ namespace ACCI_WINFORM.Forms
             // Display data
             DisplayPhieuDKData();
             DisplayChiTietPhieuData();
-
-            // Enable buttons (removed the update status button)
-            btnInPhieu.Enabled = true;
 
             // Check if HoaDon exists
             bool existsHoaDon = hoaDonBus.KiemTraPhieuDKDaCoHoaDon(maPhieuDK);
@@ -315,13 +311,6 @@ namespace ACCI_WINFORM.Forms
                     MessageBox.Show($"Lỗi khi tạo hóa đơn: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-        }
-
-        private void btnInPhieu_Click(object sender, EventArgs e)
-        {
-            if (currentPhieuDK == null) return;
-
-            MessageBox.Show("Tính năng in phiếu đang được phát triển!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnQuayLai_Click(object sender, EventArgs e)

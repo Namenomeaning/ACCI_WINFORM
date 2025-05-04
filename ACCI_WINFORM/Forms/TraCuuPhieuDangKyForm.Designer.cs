@@ -54,7 +54,6 @@
             groupBox3 = new GroupBox();
             dgvChiTietPhieu = new DataGridView();
             btnTaoHoaDon = new Button();
-            btnInPhieu = new Button();
             btnQuayLai = new Button();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -327,7 +326,7 @@
             // btnTaoHoaDon
             // 
             btnTaoHoaDon.Enabled = false;
-            btnTaoHoaDon.Location = new Point(550, 454);
+            btnTaoHoaDon.Location = new Point(645, 454);
             btnTaoHoaDon.Margin = new Padding(3, 2, 3, 2);
             btnTaoHoaDon.Name = "btnTaoHoaDon";
             btnTaoHoaDon.Size = new Size(92, 25);
@@ -335,18 +334,6 @@
             btnTaoHoaDon.Text = "Tạo hóa đơn";
             btnTaoHoaDon.UseVisualStyleBackColor = true;
             btnTaoHoaDon.Click += btnTaoHoaDon_Click;
-            // 
-            // btnInPhieu
-            // 
-            btnInPhieu.Enabled = false;
-            btnInPhieu.Location = new Point(650, 454);
-            btnInPhieu.Margin = new Padding(3, 2, 3, 2);
-            btnInPhieu.Name = "btnInPhieu";
-            btnInPhieu.Size = new Size(82, 25);
-            btnInPhieu.TabIndex = 6;
-            btnInPhieu.Text = "In phiếu";
-            btnInPhieu.UseVisualStyleBackColor = true;
-            btnInPhieu.Click += btnInPhieu_Click;
             // 
             // btnQuayLai
             // 
@@ -365,7 +352,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(840, 490);
             Controls.Add(btnQuayLai);
-            Controls.Add(btnInPhieu);
             Controls.Add(btnTaoHoaDon);
             Controls.Add(groupBox3);
             Controls.Add(groupBox2);
@@ -415,7 +401,6 @@
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.DataGridView dgvChiTietPhieu;
         private System.Windows.Forms.Button btnTaoHoaDon;
-        private System.Windows.Forms.Button btnInPhieu;
         private System.Windows.Forms.Button btnQuayLai;
     }
 }

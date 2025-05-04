@@ -55,8 +55,6 @@
             this.grbChiTietHoaDon = new System.Windows.Forms.GroupBox();
             this.dgvChiTietHoaDon = new System.Windows.Forms.DataGridView();
             this.btnThanhToan = new System.Windows.Forms.Button();
-            this.btnHuyHoaDon = new System.Windows.Forms.Button();
-            this.btnIn = new System.Windows.Forms.Button();
             this.btnDong = new System.Windows.Forms.Button();
             this.grbThongTinHoaDon.SuspendLayout();
             this.grbChiTietHoaDon.SuspendLayout();
@@ -317,7 +315,7 @@
             // 
             // btnThanhToan
             // 
-            this.btnThanhToan.Location = new System.Drawing.Point(337, 490);
+            this.btnThanhToan.Location = new System.Drawing.Point(458, 490);
             this.btnThanhToan.Name = "btnThanhToan";
             this.btnThanhToan.Size = new System.Drawing.Size(100, 30);
             this.btnThanhToan.TabIndex = 3;
@@ -325,29 +323,9 @@
             this.btnThanhToan.UseVisualStyleBackColor = true;
             this.btnThanhToan.Click += new System.EventHandler(this.btnThanhToan_Click);
             // 
-            // btnHuyHoaDon
-            // 
-            this.btnHuyHoaDon.Location = new System.Drawing.Point(458, 490);
-            this.btnHuyHoaDon.Name = "btnHuyHoaDon";
-            this.btnHuyHoaDon.Size = new System.Drawing.Size(100, 30);
-            this.btnHuyHoaDon.TabIndex = 4;
-            this.btnHuyHoaDon.Text = "Hủy hóa đơn";
-            this.btnHuyHoaDon.UseVisualStyleBackColor = true;
-            this.btnHuyHoaDon.Click += new System.EventHandler(this.btnHuyHoaDon_Click);
-            // 
-            // btnIn
-            // 
-            this.btnIn.Location = new System.Drawing.Point(569, 490);
-            this.btnIn.Name = "btnIn";
-            this.btnIn.Size = new System.Drawing.Size(100, 30);
-            this.btnIn.TabIndex = 5;
-            this.btnIn.Text = "In hóa đơn";
-            this.btnIn.UseVisualStyleBackColor = true;
-            this.btnIn.Click += new System.EventHandler(this.btnIn_Click);
-            // 
             // btnDong
             // 
-            this.btnDong.Location = new System.Drawing.Point(682, 490);
+            this.btnDong.Location = new System.Drawing.Point(582, 490);
             this.btnDong.Name = "btnDong";
             this.btnDong.Size = new System.Drawing.Size(100, 30);
             this.btnDong.TabIndex = 6;
@@ -361,8 +339,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 530);
             this.Controls.Add(this.btnDong);
-            this.Controls.Add(this.btnIn);
-            this.Controls.Add(this.btnHuyHoaDon);
             this.Controls.Add(this.btnThanhToan);
             this.Controls.Add(this.grbChiTietHoaDon);
             this.Controls.Add(this.grbThongTinHoaDon);
@@ -409,8 +385,6 @@
         private GroupBox grbChiTietHoaDon;
         private DataGridView dgvChiTietHoaDon;
         private Button btnThanhToan;
-        private Button btnHuyHoaDon;
-        private Button btnIn;
         private Button btnDong;
     }
 }
