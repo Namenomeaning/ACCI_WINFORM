@@ -84,7 +84,7 @@ namespace ACCI_WINFORM.BUS
             string trangThaiNhan = "DaNhan";
             DateTime ngayNhan = DateTime.Now;
             string phuongThuc = "TaiTT"; // Hardcoded as in original
-            string diaChi = "Empty"; // Hardcoded as in original
+            string diaChi = "123 Lê Lợi"; // Hardcoded as in original
 
             // Validation: Check if SoHieu exists, MaNhanVien exists
             var chungChi = LayChungChi(soHieu);

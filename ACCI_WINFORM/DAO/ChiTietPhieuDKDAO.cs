@@ -121,6 +121,14 @@ namespace ACCI_WINFORM.DAO
             return DatabaseHelper.ExecuteQuery(query, parameters.ToArray());
         }
 
+        public DataTable LayChiTietTheoSoBaoDanh(string soBaoDanh)
+        {
+            string query = "SELECT MaPhieuDK, ThuTu, MaThiSinh, MaLichThi, SoBaoDanh, Diem, KetQua " +
+                           "FROM ChiTietPhieuDK WHERE SoBaoDanh = @SoBaoDanh";
+            var parameters = new[] { new MySqlParameter("@SoBaoDanh", soBaoDanh) };
+            return DatabaseHelper.ExecuteQuery(query, parameters);
+        }
+
         // Helper to create parameters from ChiTietPhieuDK object
         private MySqlParameter[] MapChiTietToParameters(ChiTietPhieuDK chiTiet)
         {

@@ -5,7 +5,6 @@ using System.Data;
 using System.Windows.Forms;
 using ACCI_WINFORM.Utils;
 
-
 namespace ACCI_WINFORM.Forms
 {
     public partial class TraCuuChungChiForm : Form
@@ -33,7 +32,7 @@ namespace ACCI_WINFORM.Forms
             dgvDanhSachThiSinh.AllowUserToAddRows = false;
             dgvDanhSachThiSinh.ReadOnly = true;
 
-            // Thêm các cột vào DataGridView, đặt Name rõ ràng
+            // Thêm các cột vào DataGridView
             var colMaThiSinh = new DataGridViewTextBoxColumn { Name = "MaThiSinh", HeaderText = "Mã thí sinh", DataPropertyName = "MaThiSinh" };
             var colHoTen = new DataGridViewTextBoxColumn { Name = "HoTen", HeaderText = "Họ tên", DataPropertyName = "HoTen" };
             var colNgayThi = new DataGridViewTextBoxColumn { Name = "NgayThi", HeaderText = "Ngày thi", DataPropertyName = "NgayThi" };
@@ -44,36 +43,24 @@ namespace ACCI_WINFORM.Forms
             var colNgayNhan = new DataGridViewTextBoxColumn { Name = "NgayNhan", HeaderText = "Ngày nhận", DataPropertyName = "NgayNhan" };
             var colTrangThaiNhan = new DataGridViewTextBoxColumn { Name = "TrangThaiNhan", HeaderText = "Trạng thái nhận", DataPropertyName = "TrangThaiNhan" };
             dgvDanhSachThiSinh.Columns.AddRange(colMaThiSinh, colHoTen, colNgayThi, colDiemSo, colKetQuaChamThi, colMaChungChi, colNgayCap, colNgayNhan, colTrangThaiNhan);
+
+            // Thiết lập ComboBox cho trạng thái nhận
+            cmbTrangThaiNhan.Items.Add("DaNhan");
+            cmbTrangThaiNhan.Items.Add("ChuaNhan");
+            cmbTrangThaiNhan.DropDownStyle = ComboBoxStyle.DropDownList;
         }
 
         private void btnTimKiem_Click(object sender, EventArgs e)
         {
-            string maThiSinh = txtMaThiSinh.Text.Trim();
-            string hoTen = txtHoTen.Text.Trim();
-            string ngayThi = txtNgayThi.Text.Trim();
             string soBaoDanh = txtSoBaoDanh.Text.Trim();
 
-            // Kiểm tra định dạng ngày nếu có
-            DateTime? dtNgayThi = null;
-            if (!string.IsNullOrEmpty(ngayThi))
+            if (string.IsNullOrEmpty(soBaoDanh))
             {
-                if (!DateTime.TryParse(ngayThi, out DateTime parsedDate))
-                {
-                    MessageBox.Show("Ngày thi không hợp lệ! Vui lòng nhập theo định dạng dd/MM/yyyy.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                dtNgayThi = parsedDate;
-            }
-
-            // 1. Lấy danh sách thí sinh từ ThiSinhDAO
-            DataTable dtThiSinh = thiSinhDAO.LayThiSinhTheoTieuChi(maThiSinh, hoTen);
-            if (dtThiSinh.Rows.Count == 0)
-            {
-                MessageBox.Show("Không tìm thấy thí sinh phù hợp!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Vui lòng nhập số báo danh!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            // 2. Tạo DataTable kết quả
+            // 1. Tạo DataTable kết quả
             DataTable dtResult = new DataTable();
             dtResult.Columns.Add("MaThiSinh", typeof(string));
             dtResult.Columns.Add("HoTen", typeof(string));
@@ -85,55 +72,55 @@ namespace ACCI_WINFORM.Forms
             dtResult.Columns.Add("NgayNhan", typeof(DateTime));
             dtResult.Columns.Add("TrangThaiNhan", typeof(string));
 
-            // 3. Duyệt qua từng thí sinh để lấy dữ liệu liên quan
-            foreach (DataRow rowThiSinh in dtThiSinh.Rows)
+            // 2. Lấy chi tiết phiếu đăng ký theo số báo danh (unique)
+            DataTable dtChiTiet = chiTietPhieuDKDAO.LayChiTietTheoSoBaoDanh(soBaoDanh);
+            if (dtChiTiet.Rows.Count == 0)
             {
-                string currentMaThiSinh = rowThiSinh["MaThiSinh"].ToString();
+                MessageBox.Show("Không tìm thấy thí sinh với số báo danh này!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
-                // Lấy chi tiết phiếu đăng ký từ ChiTietPhieuDKDAO
-                DataTable dtChiTiet = chiTietPhieuDKDAO.LayChiTietTheoThiSinhVaSoBaoDanh(currentMaThiSinh, soBaoDanh);
-                foreach (DataRow rowChiTiet in dtChiTiet.Rows)
+            // 3. Xử lý dữ liệu từ chi tiết phiếu đăng ký
+            foreach (DataRow rowChiTiet in dtChiTiet.Rows)
+            {
+                string maThiSinh = rowChiTiet["MaThiSinh"].ToString();
+                string maLichThi = rowChiTiet["MaLichThi"].ToString();
+
+                // Lấy thông tin thí sinh
+                DataTable dtThiSinh = thiSinhDAO.LayThiSinhTheoMa(maThiSinh);
+                if (dtThiSinh.Rows.Count == 0) continue;
+
+                // Lấy ngày thi từ lịch thi
+                DateTime? ngThi = lichThiDAO.LayNgayThi(maLichThi);
+                if (!ngThi.HasValue) continue;
+
+                // Lấy chứng chỉ
+                string maPhieuDK = rowChiTiet["MaPhieuDK"].ToString();
+                int thuTu = Convert.ToInt32(rowChiTiet["ThuTu"]);
+                ChungChi rowChungChi = chungChiDAO.LayChungChi(maPhieuDK, thuTu);
+
+                // Thêm dòng vào dtResult
+                DataRow newRow = dtResult.NewRow();
+                newRow["MaThiSinh"] = maThiSinh;
+                newRow["HoTen"] = dtThiSinh.Rows[0]["HoTen"];
+                newRow["NgayThi"] = ngThi.Value;
+                newRow["DiemSo"] = rowChiTiet["Diem"] == DBNull.Value ? (object)DBNull.Value : Convert.ToDecimal(rowChiTiet["Diem"]);
+                newRow["KetQuaChamThi"] = rowChiTiet["KetQua"] == DBNull.Value ? (object)DBNull.Value : rowChiTiet["KetQua"];
+                if (rowChungChi != null)
                 {
-                    string maLichThi = rowChiTiet["MaLichThi"].ToString();
-
-                    // Lấy lịch thi từ LichThiDAO
-                    DateTime? ngThi = lichThiDAO.LayNgayThi(maLichThi);
-                    if (ngThi.HasValue)
-                    {
-                        DateTime lichThiNgayThi = ngThi.Value;
-                        if (dtNgayThi == null || lichThiNgayThi.Date == dtNgayThi.Value.Date)
-                        {
-                            // Lấy chứng chỉ từ ChungChiDAO
-                            string maPhieuDK = rowChiTiet["MaPhieuDK"].ToString();
-                            int thuTu = Convert.ToInt32(rowChiTiet["ThuTu"]);
-                            ChungChi rowChungChi = chungChiDAO.LayChungChi(maPhieuDK, thuTu);
-
-
-                            // Thêm dòng vào dtResult
-                            DataRow newRow = dtResult.NewRow();
-                            newRow["MaThiSinh"] = currentMaThiSinh;
-                            newRow["HoTen"] = rowThiSinh["HoTen"];
-                            newRow["NgayThi"] = lichThiNgayThi;
-                            newRow["DiemSo"] = rowChiTiet["Diem"] == DBNull.Value ? (object)DBNull.Value : Convert.ToDecimal(rowChiTiet["Diem"]);
-                            newRow["KetQuaChamThi"] = rowChiTiet["KetQua"] == DBNull.Value ? (object)DBNull.Value : rowChiTiet["KetQua"];
-                            if (rowChungChi != null)
-                            {
-                                newRow["MaChungChi"] = rowChungChi.SoHieu;
-                                newRow["NgayCap"] = rowChungChi.NgayCap;
-                                newRow["NgayNhan"] = rowChungChi.NgayNhan == null ? (object)DBNull.Value : rowChungChi.NgayNhan;
-                                newRow["TrangThaiNhan"] = rowChungChi.TrangThaiNhan;
-                            }
-                            else
-                            {
-                                newRow["MaChungChi"] = DBNull.Value;
-                                newRow["NgayCap"] = DBNull.Value;
-                                newRow["NgayNhan"] = DBNull.Value;
-                                newRow["TrangThaiNhan"] = DBNull.Value;
-                            }
-                            dtResult.Rows.Add(newRow);
-                        }
-                    }
+                    newRow["MaChungChi"] = rowChungChi.SoHieu;
+                    newRow["NgayCap"] = rowChungChi.NgayCap;
+                    newRow["NgayNhan"] = rowChungChi.NgayNhan == null ? (object)DBNull.Value : rowChungChi.NgayNhan;
+                    newRow["TrangThaiNhan"] = rowChungChi.TrangThaiNhan;
                 }
+                else
+                {
+                    newRow["MaChungChi"] = DBNull.Value;
+                    newRow["NgayCap"] = DBNull.Value;
+                    newRow["NgayNhan"] = DBNull.Value;
+                    newRow["TrangThaiNhan"] = DBNull.Value;
+                }
+                dtResult.Rows.Add(newRow);
             }
 
             if (dtResult.Rows.Count == 0)
@@ -156,7 +143,7 @@ namespace ACCI_WINFORM.Forms
 
             DataRowView rowView = dgvDanhSachThiSinh.SelectedRows[0].DataBoundItem as DataRowView;
             string soHieu = rowView.Row["MaChungChi"].ToString();
-            string trangThaiNhan = txtTrangThaiNhan.Text.Trim();
+            string trangThaiNhan = cmbTrangThaiNhan.SelectedItem?.ToString();
 
             if (string.IsNullOrEmpty(soHieu))
             {
@@ -166,7 +153,7 @@ namespace ACCI_WINFORM.Forms
 
             if (string.IsNullOrEmpty(trangThaiNhan))
             {
-                MessageBox.Show("Vui lòng nhập trạng thái nhận!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Vui lòng chọn trạng thái nhận!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -187,14 +174,14 @@ namespace ACCI_WINFORM.Forms
             if (dgvDanhSachThiSinh.SelectedRows.Count > 0)
             {
                 DataGridViewRow row = dgvDanhSachThiSinh.SelectedRows[0];
-                // Sử dụng chỉ số cột thay vì tên để tránh lỗi
                 int trangThaiNhanIndex = dgvDanhSachThiSinh.Columns["TrangThaiNhan"].Index;
-                txtTrangThaiNhan.Text = row.Cells[trangThaiNhanIndex].Value?.ToString() ?? "";
+                string trangThaiNhan = row.Cells[trangThaiNhanIndex].Value?.ToString();
+                cmbTrangThaiNhan.SelectedItem = trangThaiNhan;
             }
         }
+
         private void BtnBack_Click(object sender, EventArgs e)
         {
-            // Hiển thị MainForm và đóng NhapKetQuaThiForm
             new MainForm().Show();
             this.Close();
         }

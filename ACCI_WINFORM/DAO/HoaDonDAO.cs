@@ -11,11 +11,107 @@ namespace ACCI_WINFORM.DAO
     {
         public int ThemHoaDon(HoaDon hoaDon)
         {
-            string query = "INSERT INTO HoaDon (MaPhieuDK, MaPhieuGiaHan, MaUuDai, MaNV_KeToan, NgayLap, PhuongThuc, MaGiaoDich, TongTienGoc, SoTienGiam, TongThu, NgayThanhToan, TrangThaiTT) VALUES (@MaPhieuDK, @MaPhieuGiaHan, @MaUuDai, @MaNV_KeToan, @NgayLap, @PhuongThuc, @MaGiaoDich, @TongTienGoc, @SoTienGiam, @TongThu, @NgayThanhToan, @TrangThaiTT)";
-            var parameters = MapHoaDonToParameters(hoaDon);
-            parameters = parameters.Where(p => p.ParameterName != "@MaHoaDon").ToArray(); // Remove ID for insert
-            return DatabaseHelper.ExecuteNonQuery(query, parameters);
-            // Consider returning the new MaHoaDon if it's auto-generated
+            try
+            {
+                // Bước 1: Thêm hóa đơn mới
+                string insertQuery = "INSERT INTO HoaDon (MaPhieuDK, MaNV_KeToan, NgayLap, TongTienGoc, SoTienGiam, TongThu, TrangThaiTT) " +
+                                  "VALUES (@MaPhieuDK, @MaNV_KeToan, @NgayLap, @TongTienGoc, @SoTienGiam, @TongThu, @TrangThaiTT)";
+
+                var parameters = new[]
+                {
+                    new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK),
+                    new MySqlParameter("@MaNV_KeToan", hoaDon.MaNV_KeToan),
+                    new MySqlParameter("@NgayLap", hoaDon.NgayLap),
+                    new MySqlParameter("@TongTienGoc", hoaDon.TongTienGoc),
+                    new MySqlParameter("@SoTienGiam", hoaDon.SoTienGiam),
+                    new MySqlParameter("@TongThu", hoaDon.TongThu),
+                    new MySqlParameter("@TrangThaiTT", hoaDon.TrangThaiTT)
+                };
+
+                // Thực hiện thêm mới
+                int rowsAffected = DatabaseHelper.ExecuteNonQuery(insertQuery, parameters);
+
+                if (rowsAffected > 0)
+                {
+                    // Bước 2: Lấy ID đầy đủ (HD1, HD2, ...) của hóa đơn vừa tạo
+                    string selectQuery = "SELECT MaHoaDon FROM HoaDon WHERE MaPhieuDK = @MaPhieuDK AND MaNV_KeToan = @MaNV_KeToan ORDER BY NgayLap DESC LIMIT 1";
+                    var selectParams = new[]
+                    {
+                        new MySqlParameter("@MaPhieuDK", hoaDon.MaPhieuDK),
+                        new MySqlParameter("@MaNV_KeToan", hoaDon.MaNV_KeToan)
+                    };
+
+                    DataTable dt = DatabaseHelper.ExecuteQuery(selectQuery, selectParams);
+
+                    if (dt.Rows.Count > 0)
+                    {
+                        // Cập nhật ID đúng định dạng cho đối tượng hoaDon
+                        string actualInvoiceId = dt.Rows[0]["MaHoaDon"].ToString();
+                        hoaDon.MaHoaDon = actualInvoiceId;
+
+                        // Convert to numeric ID for legacy code compatibility
+                        if (actualInvoiceId.StartsWith("HD") && int.TryParse(actualInvoiceId.Substring(2), out int numericId))
+                        {
+                            return numericId;
+                        }
+
+                        // If extraction fails, just return 1 to indicate success
+                        return 1;
+                    }
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi trong ThemHoaDon (DAO): {ex.Message}");
+                return 0;
+            }
+        }
+
+        // Kiểm tra phiếu đăng ký đã có hóa đơn hay chưa
+        public bool KiemTraPhieuDKDaCoHoaDon(string maPhieuDK)
+        {
+            string query = "SELECT COUNT(*) FROM HoaDon WHERE MaPhieuDK = @MaPhieuDK";
+            var parameters = new[] { new MySqlParameter("@MaPhieuDK", maPhieuDK) };
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                return Convert.ToInt32(dt.Rows[0][0]) > 0;
+            }
+            return false;
+        }
+
+        // Lấy hóa đơn theo mã phiếu đăng ký
+        public HoaDon LayHoaDonTheoPhieuDK(string maPhieuDK)
+        {
+            string query = "SELECT * FROM HoaDon WHERE MaPhieuDK = @MaPhieuDK";
+            var parameters = new[] { new MySqlParameter("@MaPhieuDK", maPhieuDK) };
+
+            DataTable dt = DatabaseHelper.ExecuteQuery(query, parameters);
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                var row = dt.Rows[0];
+                return new HoaDon
+                {
+                    MaHoaDon = row["MaHoaDon"].ToString(),
+                    MaPhieuDK = row["MaPhieuDK"].ToString(),
+                    MaPhieuGiaHan = row["MaPhieuGiaHan"] != DBNull.Value ? row["MaPhieuGiaHan"].ToString() : null,
+                    MaUuDai = row["MaUuDai"] != DBNull.Value ? row["MaUuDai"].ToString() : null,
+                    MaNV_KeToan = row["MaNV_KeToan"].ToString(),
+                    NgayLap = Convert.ToDateTime(row["NgayLap"]),
+                    PhuongThuc = row["PhuongThuc"] != DBNull.Value ? row["PhuongThuc"].ToString() : null,
+                    MaGiaoDich = row["MaGiaoDich"] != DBNull.Value ? row["MaGiaoDich"].ToString() : null,
+                    TongTienGoc = Convert.ToDecimal(row["TongTienGoc"]),
+                    SoTienGiam = Convert.ToDecimal(row["SoTienGiam"]),
+                    TongThu = Convert.ToDecimal(row["TongThu"]),
+                    NgayThanhToan = row["NgayThanhToan"] != DBNull.Value ? Convert.ToDateTime(row["NgayThanhToan"]) : (DateTime?)null,
+                    TrangThaiTT = row["TrangThaiTT"].ToString()
+                };
+            }
+
+            return null;
         }
 
         public DataTable LayHoaDon(string maHoaDon)

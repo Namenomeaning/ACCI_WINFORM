@@ -96,10 +96,9 @@ namespace ACCI_WINFORM.BUS
             return thiSinhDAO.XoaThiSinh(maThiSinh) > 0;
         }
 
-        public DataTable LayThiSinhTheoTieuChi(string maThiSinh, string hoTen)
+        public DataTable LayThiSinhTheoMa(string maThiSinh)
         {
-            // Can add more complex search logic/combination here if needed
-            return thiSinhDAO.LayThiSinhTheoTieuChi(maThiSinh, hoTen);
+            return thiSinhDAO.LayThiSinhTheoMa(maThiSinh);
         }
 
         public DataTable LayDanhSachThiSinhTheoMa(List<string> maThiSinhList)
