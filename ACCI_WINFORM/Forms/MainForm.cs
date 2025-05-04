@@ -9,7 +9,7 @@ namespace ACCI_WINFORM
     public partial class MainForm : Form
     {
         private readonly NhanVien _nhanVien;
-
+ 
         public MainForm()
         {
             InitializeComponent();
@@ -31,7 +31,7 @@ namespace ACCI_WINFORM
                     AddButton("Gia Hạn Thời Gian Thi", () => new KiemTraGiaHanForm().Show());
                     break;
                 case "KeToan":
-                    AddButton("Quản Lý Hóa Đơn", () => new TemplateForm().Show());
+                    AddButton("Tra Cứu Chứng Chỉ", () => new TraCuuChungChiForm().Show());
                     break;
                 case "NhapLieu":
                     AddButton("Nhập Kết Quả Thi", () => new NhapKetQuaThiForm().Show());

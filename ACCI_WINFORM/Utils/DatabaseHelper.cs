@@ -8,7 +8,7 @@ namespace ACCI_WINFORM.Utils
 {
     public static class DatabaseHelper
     {
-        private static readonly string connectionString = "Server=192.168.0.100;Port=33306;Database=ACCI;User=root;Password=root;";
+        private static readonly string connectionString = "Server=localhost;Port=33306;Database=ACCI;User=root;Password=root;";
 
         private static MySqlConnection CreateAndOpenConnection()
         {

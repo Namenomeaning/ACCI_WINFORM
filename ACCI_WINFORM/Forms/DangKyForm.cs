@@ -235,7 +235,7 @@ namespace ACCI_WINFORM.Forms
                         MaThiSinh = thiSinh.MaThiSinh,
                         MaLichThi = maLichThi,
                         TrangThaiCT = "DK",
-                        MaNV_NhapLieu = maNV_TiepNhan
+                        MaNV_NhapLieu = nhanvien.MaNhanVien
                     };
 
                     // Insert ChiTietPhieuDK
@@ -316,7 +316,7 @@ namespace ACCI_WINFORM.Forms
                     var phieuDK = new PhieuDK
                     {
                         MaKhachHang = khachHang.MaKhachHang,
-                        MaNV_TiepNhan = maNV_TiepNhan,
+                        MaNV_TiepNhan = nhanvien.MaNhanVien,
                         NgayTao = DateTime.Now,
                         SoLanGiaHan = 0,
                         TrangThai = "Moi"
@@ -340,7 +340,7 @@ namespace ACCI_WINFORM.Forms
                             MaThiSinh = thiSinh.MaThiSinh,
                             MaLichThi = lichThi.MaLichThi,
                             TrangThaiCT = "DK",
-                            MaNV_NhapLieu = maNV_TiepNhan
+                            MaNV_NhapLieu = nhanvien.MaNhanVien
                         };
 
                         if (!chiTietPhieuDKBUS.ThemChiTietPhieuDK(chiTiet))
