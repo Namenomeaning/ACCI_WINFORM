@@ -2,35 +2,35 @@
 using ACCI_WINFORM.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Windows.Forms;
+using static ACCI_WINFORM.BUS.PhieuDKBUS;
+using MySqlConnector;
+using ACCI_WINFORM.DAO;
+using ACCI_WINFORM.Utils;
 
 namespace ACCI_WINFORM.Forms
 {
     public partial class DangKyForm : Form
     {
-        private readonly KhachHangBUS khachHangDAO = new KhachHangBUS();
-        private readonly ThiSinhBUS thiSinhDAO = new ThiSinhBUS();
-        private readonly PhieuDKBUS phieuDKDAO = new PhieuDKBUS();
-        private readonly ChiTietPhieuDKBUS chiTietPhieuDKDAO = new ChiTietPhieuDKBUS();
-        private readonly LichThiBUS lichThiDAO = new LichThiBUS();
-        private readonly DanhGiaBUS danhGiaDAO = new DanhGiaBUS();
-
+        private NhanVien nhanvien;
+        private KhachHangBUS khachHangBUS = new KhachHangBUS();
+        private ThiSinhBUS thiSinhBUS = new ThiSinhBUS();
+        private PhieuDKBUS phieuDKBUS = new PhieuDKBUS();
+        private LichThiBUS lichThiBUS = new LichThiBUS();
+        private ChiTietPhieuDKBUS chiTietPhieuDKBUS = new ChiTietPhieuDKBUS();
         private List<ThiSinh> danhSachThiSinh = new List<ThiSinh>();
-        private string maNV_TiepNhan = "NV001"; // Giả định mã nhân viên tiếp nhận
-
+        private DanhGiaBUS danhGiaBUS = new DanhGiaBUS();
+        private LichThiBUS lichThiBus = new LichThiBUS();
         public DangKyForm()
         {
             InitializeComponent();
-            KhoiTaoForm();
             DangKyForm_Load();
+            nhanvien = Session.CurrentUser;
         }
 
-        private void KhoiTaoForm()
-        {
-            this.Text = "Đăng Ký Thi";
-            this.StartPosition = FormStartPosition.CenterScreen;
-        }
+
 
         private void DangKyForm_Load()
         {
@@ -39,20 +39,11 @@ namespace ACCI_WINFORM.Forms
             cbLoaiKhachHang.SelectedIndex = 0;
 
             // Tải danh sách loại đánh giá
-            var danhSachDanhGia = danhGiaDAO.LayDSDanhGia();
+            var danhSachDanhGia = danhGiaBUS.LayDSDanhGia();
             cbLoaiDanhGia.DataSource = danhSachDanhGia;
             cbLoaiDanhGia.DisplayMember = "TenDanhGia";
             cbLoaiDanhGia.ValueMember = "MaDanhGia";
 
-            // Tải danh sách lịch thi dựa trên loại đánh giá
-            if (cbLoaiDanhGia.SelectedValue != null)
-            {
-                string maDanhGia = cbLoaiDanhGia.SelectedValue.ToString();
-                var danhSachLichThi = lichThiDAO.LayDSLichThiMoDangKyTheoDanhGia(maDanhGia);
-                cbLichThi.DataSource = danhSachLichThi;
-                cbLichThi.DisplayMember = "NgayThi";
-                cbLichThi.ValueMember = "MaLichThi";
-            }
 
             // Tải danh sách giới tính
             cbGioiTinhThiSinh.Items.AddRange(new string[] { "Nam", "Nữ" });
@@ -65,28 +56,26 @@ namespace ACCI_WINFORM.Forms
             dgvDanhSachThiSinh.Columns.Add("GioiTinh", "Giới Tính");
         }
 
-        private void CbLoaiKhachHang_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            bool isKhachTuDo = cbLoaiKhachHang.SelectedItem.ToString() == "Khách tự do";
-            txtHoTen.Visible = isKhachTuDo;
-            txtTenDonVi.Visible = !isKhachTuDo;
-            txtDiaChi.Visible = !isKhachTuDo;
-            cbLichThi.Visible = isKhachTuDo;
-            txtLichThiMongMuon.Visible = !isKhachTuDo;
-        }
-
-        private void CbLoaiDanhGia_SelectedIndexChanged(object sender, EventArgs e)
+        private void cbLoaiDanhGia_SelectedIndexChanged_1(object sender, EventArgs e)
         {
             if (cbLoaiDanhGia.SelectedValue != null)
             {
                 string maDanhGia = cbLoaiDanhGia.SelectedValue.ToString();
-                var danhSachLichThi = lichThiDAO.LayDSLichThiMoDangKyTheoDanhGia(maDanhGia);
+                var danhSachLichThi = lichThiBus.LayDSLichThiTheoDanhGia(maDanhGia);
                 cbLichThi.DataSource = danhSachLichThi;
                 cbLichThi.DisplayMember = "NgayThi";
                 cbLichThi.ValueMember = "MaLichThi";
             }
         }
 
+        private void cbLoaiKhachHang_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            bool isKhachTuDo = cbLoaiKhachHang.SelectedItem.ToString() == "Khách tự do";
+            txtTenDonVi.ReadOnly = isKhachTuDo;
+            cbLichThi.Enabled = isKhachTuDo;
+            txtLichThiMongMuon.ReadOnly = isKhachTuDo;
+
+        }
 
 
 
@@ -174,14 +163,12 @@ namespace ACCI_WINFORM.Forms
         {
             try
             {
-                // Kiểm tra thông tin khách hàng
+                // Validate customer information
                 if (string.IsNullOrWhiteSpace(txtEmail.Text) || string.IsNullOrWhiteSpace(txtSoDienThoai.Text))
                 {
                     MessageBox.Show("Email và số điện thoại không được để trống!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-
-
 
                 var khachHang = new KhachHang
                 {
@@ -195,7 +182,7 @@ namespace ACCI_WINFORM.Forms
 
                 if (cbLoaiKhachHang.SelectedItem.ToString() == "Khách tự do")
                 {
-                    // Đăng ký khách tự do
+                    // Validate for Khách Tự Do
                     if (danhSachThiSinh.Count != 1)
                     {
                         MessageBox.Show("Khách tự do chỉ được đăng ký cho 1 thí sinh!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -211,18 +198,35 @@ namespace ACCI_WINFORM.Forms
                     var thiSinh = danhSachThiSinh[0];
                     string maLichThi = cbLichThi.SelectedValue.ToString();
 
-                    thiSinhDAO.ThemThiSinh(thiSinh);
-                    khachHangDAO.ThemKhachHang(khachHang);
+                    // Insert KhachHang
+                    if (!khachHangBUS.ThemKhachHang(khachHang, out string maKhachHang))
+                    {
+                        throw new Exception("Không thể thêm khách hàng!");
+                    }
+                    khachHang.MaKhachHang = maKhachHang;
+
+                    // Insert ThiSinh
+                    if (!thiSinhBUS.ThemThiSinh(thiSinh, out string maThiSinh))
+                    {
+                        throw new Exception("Không thể thêm thí sinh!");
+                    }
+                    thiSinh.MaThiSinh = maThiSinh;
 
                     var phieuDK = new PhieuDK
                     {
                         MaKhachHang = khachHang.MaKhachHang,
-                        MaNV_TiepNhan = maNV_TiepNhan,
+                        MaNV_TiepNhan = nhanvien.MaNhanVien,
                         NgayTao = DateTime.Now,
                         SoLanGiaHan = 0,
                         TrangThai = "Moi"
                     };
-                    phieuDKDAO.ThemPhieuDK(phieuDK);
+
+                    // Insert PhieuDK
+                    if (!phieuDKBUS.ThemPhieuDK(phieuDK, out string maPhieuDK))
+                    {
+                        throw new Exception("Không thể thêm phiếu đăng ký!");
+                    }
+                    phieuDK.MaPhieuDK = maPhieuDK;
 
                     var chiTiet = new ChiTietPhieuDK
                     {
@@ -233,14 +237,23 @@ namespace ACCI_WINFORM.Forms
                         TrangThaiCT = "DK",
                         MaNV_NhapLieu = maNV_TiepNhan
                     };
-                    chiTietPhieuDKDAO.ThemChiTietPhieuDK(chiTiet);
 
-                    lichThiDAO.TangSoLuongDK(maLichThi);
+                    // Insert ChiTietPhieuDK
+                    if (!chiTietPhieuDKBUS.ThemChiTietPhieuDK(chiTiet))
+                    {
+                        throw new Exception("Không thể thêm chi tiết phiếu đăng ký!");
+                    }
+
+                    // Update SoLuongDK
+                    if (!lichThiBUS.TangSoLuongDK(maLichThi))
+                    {
+                        throw new Exception("Không thể cập nhật số lượng đăng ký!");
+                    }
                 }
                 else
                 {
-                    // Đăng ký khách đơn vị
-                    if (danhSachThiSinh.Count < 10)
+                    // Validate for Khách Đơn Vị
+                    if (danhSachThiSinh.Count < 2)
                     {
                         MessageBox.Show("Khách đơn vị phải đăng ký ít nhất 10 thí sinh!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
@@ -261,12 +274,25 @@ namespace ACCI_WINFORM.Forms
                     }
 
                     string maDanhGia = cbLoaiDanhGia.SelectedValue.ToString();
-                    string maPhongThi = "PT001"; // Giả định phòng thi
+                    string maPhongThi = "PT1";
 
-                    khachHangDAO.ThemKhachHang(khachHang);
+                    // Insert KhachHang
+                    if (!khachHangBUS.ThemKhachHang(khachHang, out string maKhachHang))
+                    {
+                        throw new Exception("Không thể thêm khách hàng!");
+                    }
+                    khachHang.MaKhachHang = maKhachHang;
+
+                    // Insert ThiSinh
+                    List<string> maThiSinhList = new List<string>();
                     foreach (var thiSinh in danhSachThiSinh)
                     {
-                        thiSinhDAO.ThemThiSinh(thiSinh);
+                        if (!thiSinhBUS.ThemThiSinh(thiSinh, out string maThiSinh))
+                        {
+                            throw new Exception($"Không thể thêm thí sinh {thiSinh.HoTen}!");
+                        }
+                        thiSinh.MaThiSinh = maThiSinh;
+                        maThiSinhList.Add(maThiSinh);
                     }
 
                     var lichThi = new LichThi
@@ -275,11 +301,17 @@ namespace ACCI_WINFORM.Forms
                         MaPhongThi = maPhongThi,
                         NgayThi = ngayThi,
                         GioThi = gioThi,
-                        SoLuongMax = danhSachThiSinh.Count + 10,
+                        SoLuongMax = 20,
                         SoLuongDK = danhSachThiSinh.Count,
                         TrangThai = "MoDangKy"
                     };
-                    lichThiDAO.ThemLichThi(lichThi);
+
+                    // Insert LichThi
+                    if (!lichThiBUS.ThemLichThi(lichThi, out string maLichThi))
+                    {
+                        throw new Exception("Không thể thêm lịch thi!");
+                    }
+                    lichThi.MaLichThi = maLichThi;
 
                     var phieuDK = new PhieuDK
                     {
@@ -289,8 +321,15 @@ namespace ACCI_WINFORM.Forms
                         SoLanGiaHan = 0,
                         TrangThai = "Moi"
                     };
-                    phieuDKDAO.ThemPhieuDK(phieuDK);
 
+                    // Insert PhieuDK
+                    if (!phieuDKBUS.ThemPhieuDK(phieuDK, out string maPhieuDK))
+                    {
+                        throw new Exception("Không thể thêm phiếu đăng ký!");
+                    }
+                    phieuDK.MaPhieuDK = maPhieuDK;
+
+                    // Insert ChiTietPhieuDK
                     int thuTu = 1;
                     foreach (var thiSinh in danhSachThiSinh)
                     {
@@ -303,7 +342,15 @@ namespace ACCI_WINFORM.Forms
                             TrangThaiCT = "DK",
                             MaNV_NhapLieu = maNV_TiepNhan
                         };
-                        chiTietPhieuDKDAO.ThemChiTietPhieuDK(chiTiet);
+
+                        if (!chiTietPhieuDKBUS.ThemChiTietPhieuDK(chiTiet))
+                        {
+                            throw new Exception("Không thể thêm chi tiết phiếu đăng ký!");
+                        }
+                        if (!lichThiBUS.TangSoLuongDK(maLichThi))
+                        {
+                            throw new Exception("Không thể cập nhật số lượng đăng ký!");
+                        }
                     }
                 }
 
@@ -316,11 +363,15 @@ namespace ACCI_WINFORM.Forms
                 MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void btnHuy_Click_1(object sender, EventArgs e)
         {
             this.Close();
             new MainForm().Show();
+        }
+
+        private void cbGioiTinhThiSinh_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

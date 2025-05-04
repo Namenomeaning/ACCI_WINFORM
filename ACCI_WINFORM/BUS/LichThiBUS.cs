@@ -1,5 +1,7 @@
 ﻿using ACCI_WINFORM.DAO; // Added DAO namespace
+using MySqlConnector; // Add this
 using ACCI_WINFORM.Models;
+using ACCI_WINFORM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,14 +12,51 @@ namespace ACCI_WINFORM.BUS
     {
         private LichThiDAO lichThiDAO = new LichThiDAO();
 
-        public bool ThemLichThi(LichThi lichThi)
+        public bool ThemLichThi(LichThi lichThi, out string maLichThi)
         {
-            // Add validation: NgayThi must be in the future? SoLuongMax > 0?
-            lichThi.SoLuongDK = 0; // Ensure initial DK count is 0
-            return lichThiDAO.ThemLichThi(lichThi) > 0;
+            maLichThi = null;
+            if (!IsValidLichThi(lichThi))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(lichThi.MaLichThi))
+            {
+                lichThi.MaLichThi = GenerateMaLichThi();
+            }
+
+            string tempMaLichThi = null;
+            bool success = DatabaseHelper.ExecuteTransaction((connection, transaction) =>
+            {
+                tempMaLichThi = lichThiDAO.ThemLichThi(lichThi, connection, transaction);
+                return tempMaLichThi != null;
+            }, out bool result);
+
+            maLichThi = tempMaLichThi;
+            return success && result;
         }
 
-        public LichThi LayLichThi(string maLichThi)
+        private string GenerateMaLichThi()
+            {
+                string query = "SELECT COALESCE(MAX(CAST(SUBSTRING(MaLichThi, 3) AS UNSIGNED)), 0) AS MaxId FROM LichThi WHERE MaLichThi LIKE 'LT%'";
+                DataTable dt = DatabaseHelper.ExecuteQuery(query);
+                int maxId = dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["MaxId"]) : 0;
+                return $"LT{maxId + 1}";
+            }
+
+            private bool IsValidLichThi(LichThi lichThi)
+            {
+                if (lichThi == null ||
+                    string.IsNullOrWhiteSpace(lichThi.MaDanhGia) ||
+                    string.IsNullOrWhiteSpace(lichThi.MaPhongThi) ||
+                    lichThi.SoLuongMax <= 0)
+                {
+                    return false;
+                }
+                return true;
+            }
+
+            public LichThi LayLichThi(string maLichThi)
         {
             DataTable dt = lichThiDAO.LayLichThi(maLichThi);
             if (dt == null || dt.Rows.Count == 0)
@@ -88,7 +127,15 @@ namespace ACCI_WINFORM.BUS
                 TrangThai = row["TrangThai"].ToString()
             };
         }
-
+        public List<LichThi> LayDSLichThiTheoDanhGia(string maDanhGia)
+        {
+            if (string.IsNullOrWhiteSpace(maDanhGia))
+            {
+                return new List<LichThi>(); // Return empty list instead of null for consistency
+            }
+            DataTable dt = lichThiDAO.LayDSLichThiTheoDanhGia(maDanhGia);
+            return MapDataTableToLichThiList(dt);
+        }
         private List<LichThi> MapDataTableToLichThiList(DataTable dt)
         {
             var list = new List<LichThi>();

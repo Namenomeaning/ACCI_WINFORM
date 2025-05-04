@@ -1,5 +1,7 @@
 ﻿using ACCI_WINFORM.DAO; // Added DAO namespace
+using MySqlConnector; // Add this
 using ACCI_WINFORM.Models;
+using ACCI_WINFORM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,14 +12,52 @@ namespace ACCI_WINFORM.BUS
     {
         private PhieuDKDAO phieuDKDAO = new PhieuDKDAO();
 
-        public bool ThemPhieuDK(PhieuDK phieuDK)
-        {
-            // Business logic/validation can be added here before calling DAO
-            int result = phieuDKDAO.ThemPhieuDK(phieuDK);
-            return result > 0; // Return true if insertion was successful
-        }
 
-        public PhieuDK LayPhieuDK(string maPhieuDK)
+
+        public bool ThemPhieuDK(PhieuDK phieuDK, out string maPhieuDK)
+        {
+            maPhieuDK = null;
+            if (!IsValidPhieuDK(phieuDK))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(phieuDK.MaPhieuDK))
+            {
+                phieuDK.MaPhieuDK = GenerateMaPhieuDK();
+            }
+
+            string tempMaPhieuDK = null;
+            bool success = DatabaseHelper.ExecuteTransaction((connection, transaction) =>
+            {
+                tempMaPhieuDK = phieuDKDAO.ThemPhieuDK(phieuDK, connection, transaction);
+                return tempMaPhieuDK != null;
+            }, out bool result);
+
+            maPhieuDK = tempMaPhieuDK;
+            return success && result;
+        }
+        private string GenerateMaPhieuDK()
+            {
+                string query = "SELECT COALESCE(MAX(CAST(SUBSTRING(MaPhieuDK, 4) AS UNSIGNED)), 0) AS MaxId FROM PhieuDK WHERE MaPhieuDK LIKE 'PDK%'";
+                DataTable dt = DatabaseHelper.ExecuteQuery(query);
+                int maxId = dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["MaxId"]) : 0;
+                return $"PDK{maxId + 1}";
+            }
+
+            private bool IsValidPhieuDK(PhieuDK phieuDK)
+            {
+                if (phieuDK == null ||
+                    string.IsNullOrWhiteSpace(phieuDK.MaKhachHang) ||
+                    string.IsNullOrWhiteSpace(phieuDK.MaNV_TiepNhan) ||
+                    string.IsNullOrWhiteSpace(phieuDK.TrangThai))
+                {
+                    return false;
+                }
+                return true;
+            }
+
+            public PhieuDK LayPhieuDK(string maPhieuDK)
         {
             DataTable dt = phieuDKDAO.LayPhieuDK(maPhieuDK);
 

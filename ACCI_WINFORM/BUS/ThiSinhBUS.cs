@@ -1,5 +1,7 @@
 ﻿using ACCI_WINFORM.DAO; // Added DAO namespace
+using MySqlConnector; // Add this
 using ACCI_WINFORM.Models;
+using ACCI_WINFORM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,14 +12,45 @@ namespace ACCI_WINFORM.BUS
     {
         private ThiSinhDAO thiSinhDAO = new ThiSinhDAO();
 
-        public bool ThemThiSinh(ThiSinh thiSinh)
+        public bool ThemThiSinh(ThiSinh thiSinh, out string maThiSinh)
         {
-            // Validation: HoTen not empty? NgaySinh valid? GioiTinh valid?
-            if (string.IsNullOrWhiteSpace(thiSinh.HoTen) || (thiSinh.NgaySinh.HasValue && thiSinh.NgaySinh.Value > DateTime.Now))
+            maThiSinh = null;
+            if (!IsValidThiSinh(thiSinh))
             {
-                return false; // Basic validation
+                return false;
             }
-            return thiSinhDAO.ThemThiSinh(thiSinh) > 0;
+
+            if (string.IsNullOrWhiteSpace(thiSinh.MaThiSinh))
+            {
+                thiSinh.MaThiSinh = GenerateMaThiSinh();
+            }
+
+            string tempMaThiSinh = null;
+            bool success = DatabaseHelper.ExecuteTransaction((connection, transaction) =>
+            {
+                tempMaThiSinh = thiSinhDAO.ThemThiSinh(thiSinh, connection, transaction);
+                return tempMaThiSinh != null; // Return true if insertion succeeded
+            }, out bool result);
+
+            maThiSinh = tempMaThiSinh; // Assign to out parameter after lambda
+            return success && result;
+        }
+        private string GenerateMaThiSinh()
+        {
+            string query = "SELECT COALESCE(MAX(CAST(SUBSTRING(MaThiSinh, 3) AS UNSIGNED)), 0) AS MaxId FROM ThiSinh WHERE MaThiSinh LIKE 'TS%'";
+            DataTable dt = DatabaseHelper.ExecuteQuery(query);
+            int maxId = dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["MaxId"]) : 0;
+            return $"TS{maxId + 1}";
+        }
+
+        private bool IsValidThiSinh(ThiSinh thiSinh)
+        {
+            if (thiSinh == null || string.IsNullOrWhiteSpace(thiSinh.HoTen))
+            {
+                return false;
+            }
+            // Add more validation if needed (e.g., NgaySinh format)
+            return true;
         }
 
         public ThiSinh LayThiSinh(string maThiSinh)

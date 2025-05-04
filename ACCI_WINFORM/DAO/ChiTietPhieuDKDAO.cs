@@ -9,13 +9,27 @@ namespace ACCI_WINFORM.DAO
 {
     public class ChiTietPhieuDKDAO
     {
-        public int ThemChiTietPhieuDK(ChiTietPhieuDK chiTiet)
+        public bool ThemChiTietPhieuDK(ChiTietPhieuDK chiTiet, MySqlConnection connection, MySqlTransaction transaction)
         {
-            string query = "INSERT INTO ChiTietPhieuDK (MaPhieuDK, ThuTu, MaThiSinh, MaLichThi, SoBaoDanh, TrangThaiCT, Diem, KetQua, NgayCoKetQua, MaNV_NhapLieu) VALUES (@MaPhieuDK, @ThuTu, @MaThiSinh, @MaLichThi, @SoBaoDanh, @TrangThaiCT, @Diem, @KetQua, @NgayCoKetQua, @MaNV_NhapLieu)";
-            var parameters = MapChiTietToParameters(chiTiet);
-            return DatabaseHelper.ExecuteNonQuery(query, parameters);
+            string query = "INSERT INTO ChiTietPhieuDK (MaPhieuDK, ThuTu, MaThiSinh, MaLichThi, SoBaoDanh, TrangThaiCT, Diem, KetQua, NgayCoKetQua, MaNV_NhapLieu) " +
+                           "VALUES (@MaPhieuDK, @ThuTu, @MaThiSinh, @MaLichThi, @SoBaoDanh, @TrangThaiCT, @Diem, @KetQua, @NgayCoKetQua, @MaNV_NhapLieu)";
+            var parameters = new[]
+            {
+        new MySqlParameter("@MaPhieuDK", chiTiet.MaPhieuDK),
+        new MySqlParameter("@ThuTu", chiTiet.ThuTu),
+        new MySqlParameter("@MaThiSinh", chiTiet.MaThiSinh ?? (object)DBNull.Value),
+        new MySqlParameter("@MaLichThi", chiTiet.MaLichThi),
+        new MySqlParameter("@SoBaoDanh", chiTiet.SoBaoDanh ?? (object)DBNull.Value),
+        new MySqlParameter("@TrangThaiCT", chiTiet.TrangThaiCT),
+        new MySqlParameter("@Diem", chiTiet.Diem ?? (object)DBNull.Value),
+        new MySqlParameter("@KetQua", chiTiet.KetQua ?? (object)DBNull.Value),
+        new MySqlParameter("@NgayCoKetQua", chiTiet.NgayCoKetQua ?? (object)DBNull.Value),
+        new MySqlParameter("@MaNV_NhapLieu", chiTiet.MaNV_NhapLieu ?? (object)DBNull.Value)
+    };
+            using var command = new MySqlCommand(query, connection, transaction);
+            command.Parameters.AddRange(parameters);
+            return command.ExecuteNonQuery() > 0;
         }
-
         public DataTable LayChiTietPhieuDK(string maPhieuDK, int thuTu)
         {
             string query = "SELECT * FROM ChiTietPhieuDK WHERE MaPhieuDK = @MaPhieuDK AND ThuTu = @ThuTu";

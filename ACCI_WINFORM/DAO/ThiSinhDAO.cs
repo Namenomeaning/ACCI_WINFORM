@@ -10,16 +10,20 @@ namespace ACCI_WINFORM.DAO
 {
     public class ThiSinhDAO
     {
-        public int ThemThiSinh(ThiSinh thiSinh)
+        public string ThemThiSinh(ThiSinh thiSinh, MySqlConnection connection, MySqlTransaction transaction)
         {
-            string query = "INSERT INTO ThiSinh (HoTen, NgaySinh, GioiTinh) VALUES (@HoTen, @NgaySinh, @GioiTinh)";
+            string query = "INSERT INTO ThiSinh (MaThiSinh, HoTen, NgaySinh, GioiTinh) VALUES (@MaThiSinh, @HoTen, @NgaySinh, @GioiTinh)";
             var parameters = new[]
             {
-                new MySqlParameter("@HoTen", thiSinh.HoTen),
-                new MySqlParameter("@NgaySinh", thiSinh.NgaySinh ?? (object)DBNull.Value),
-                new MySqlParameter("@GioiTinh", thiSinh.GioiTinh ?? (object)DBNull.Value)
-            };
-            return DatabaseHelper.ExecuteNonQuery(query, parameters);
+        new MySqlParameter("@MaThiSinh", thiSinh.MaThiSinh),
+        new MySqlParameter("@HoTen", thiSinh.HoTen),
+        new MySqlParameter("@NgaySinh", thiSinh.NgaySinh ?? (object)DBNull.Value),
+        new MySqlParameter("@GioiTinh", thiSinh.GioiTinh ?? (object)DBNull.Value)
+    };
+            using var command = new MySqlCommand(query, connection, transaction);
+            command.Parameters.AddRange(parameters);
+            int rowsAffected = command.ExecuteNonQuery();
+            return rowsAffected > 0 ? thiSinh.MaThiSinh : null; // Return the generated MaThiSinh
         }
 
         public DataTable LayThiSinh(string maThiSinh)

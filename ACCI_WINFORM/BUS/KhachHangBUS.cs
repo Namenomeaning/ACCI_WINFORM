@@ -1,25 +1,49 @@
 ﻿using ACCI_WINFORM.DAO; // Added DAO namespace
 using ACCI_WINFORM.Models;
+using ACCI_WINFORM.Utils;
+using Mysqlx.Crud;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq; // Needed for Where in parameter mapping if done in BUS
+using MySqlConnector; // Add this
+
 
 namespace ACCI_WINFORM.BUS
-{
-    public class KhachHangBUS
     {
-        private KhachHangDAO khachHangDAO = new KhachHangDAO();
-
-        public bool ThemKhachHang(KhachHang khachHang)
+        public class KhachHangBUS
         {
-            // Validation: Check LoaiKhach, ensure HoTen or TenDonVi is provided based on LoaiKhach
-            // Ensure Email format is valid, DienThoai format is valid
+            private KhachHangDAO khachHangDAO = new KhachHangDAO();
+
+        public bool ThemKhachHang(KhachHang khachHang, out string maKhachHang)
+        {
+            maKhachHang = null;
             if (!IsValidKhachHang(khachHang))
             {
-                return false; // Or throw validation exception
+                return false;
             }
-            return khachHangDAO.ThemKhachHang(khachHang) > 0;
+
+            if (string.IsNullOrWhiteSpace(khachHang.MaKhachHang))
+            {
+                khachHang.MaKhachHang = GenerateMaKhachHang();
+            }
+
+            string tempMaKhachHang = null;
+            bool success = DatabaseHelper.ExecuteTransaction((connection, transaction) =>
+            {
+                tempMaKhachHang = khachHangDAO.ThemKhachHang(khachHang, connection, transaction);
+                return tempMaKhachHang != null; // Return true if insertion succeeded
+            }, out bool result);
+
+            maKhachHang = tempMaKhachHang; // Assign to out parameter after lambda
+            return success && result;
+        }
+        private string GenerateMaKhachHang()
+        {
+            string query = "SELECT COALESCE(MAX(CAST(SUBSTRING(MaKhachHang, 3) AS UNSIGNED)), 0) AS MaxId FROM KhachHang WHERE MaKhachHang LIKE 'KH%'";
+            DataTable dt = DatabaseHelper.ExecuteQuery(query);
+            int maxId = dt.Rows.Count > 0 ? Convert.ToInt32(dt.Rows[0]["MaxId"]) : 0;
+            return $"KH{maxId + 1}";
         }
 
         public KhachHang LayKhachHang(string maKhachHang)

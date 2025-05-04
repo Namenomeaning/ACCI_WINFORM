@@ -1,5 +1,6 @@
 ﻿using ACCI_WINFORM.DAO; // Added DAO namespace
 using ACCI_WINFORM.Models;
+using ACCI_WINFORM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,9 +15,12 @@ namespace ACCI_WINFORM.BUS
 
         public bool ThemChiTietPhieuDK(ChiTietPhieuDK chiTiet)
         {
-            // Validation: MaPhieuDK exists? MaThiSinh exists? MaLichThi exists? ThuTu unique for MaPhieuDK?
-            // Add logic to generate SoBaoDanh if needed
-            return chiTietPhieuDKDAO.ThemChiTietPhieuDK(chiTiet) > 0;
+            bool success = DatabaseHelper.ExecuteTransaction((connection, transaction) =>
+            {
+                return chiTietPhieuDKDAO.ThemChiTietPhieuDK(chiTiet, connection, transaction);
+            }, out bool result);
+
+            return success && result;
         }
 
         public ChiTietPhieuDK LayChiTietPhieuDK(string maPhieuDK, int thuTu)

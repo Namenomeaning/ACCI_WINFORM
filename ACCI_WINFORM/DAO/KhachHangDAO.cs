@@ -8,12 +8,14 @@ namespace ACCI_WINFORM.DAO
 {
     public class KhachHangDAO
     {
-        public int ThemKhachHang(KhachHang khachHang)
+        public string ThemKhachHang(KhachHang khachHang, MySqlConnection connection, MySqlTransaction transaction)
         {
-            string query = "INSERT INTO KhachHang (LoaiKhach, HoTen, TenDonVi, DiaChi, Email, DienThoai) VALUES (@LoaiKhach, @HoTen, @TenDonVi, @DiaChi, @Email, @DienThoai)";
+            string query = "INSERT INTO KhachHang (MaKhachHang, LoaiKhach, HoTen, TenDonVi, DiaChi, Email, DienThoai) VALUES (@MaKhachHang, @LoaiKhach, @HoTen, @TenDonVi, @DiaChi, @Email, @DienThoai)";
             var parameters = MapKhachHangToParameters(khachHang);
-            parameters = parameters.Where(p => p.ParameterName != "@MaKhachHang").ToArray(); // Remove MaKhachHang for INSERT
-            return DatabaseHelper.ExecuteNonQuery(query, parameters);
+            using var command = new MySqlCommand(query, connection, transaction);
+            command.Parameters.AddRange(parameters);
+            int rowsAffected = command.ExecuteNonQuery();
+            return rowsAffected > 0 ? khachHang.MaKhachHang : null; // Return the generated MaKhachHang
         }
 
         public DataTable LayKhachHang(string maKhachHang)
@@ -49,7 +51,7 @@ namespace ACCI_WINFORM.DAO
         {
             return new[]
             {
-                new MySqlParameter("@MaKhachHang", khachHang.MaKhachHang), // Include for UPDATE/DELETE checks
+                new MySqlParameter("@MaKhachHang", khachHang.MaKhachHang),
                 new MySqlParameter("@LoaiKhach", khachHang.LoaiKhach),
                 new MySqlParameter("@HoTen", khachHang.HoTen ?? (object)DBNull.Value),
                 new MySqlParameter("@TenDonVi", khachHang.TenDonVi ?? (object)DBNull.Value),

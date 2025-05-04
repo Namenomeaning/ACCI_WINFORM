@@ -9,21 +9,24 @@ namespace ACCI_WINFORM.DAO
 {
     public class PhieuDKDAO
     {
-        public int ThemPhieuDK(PhieuDK phieuDK)
+        public string ThemPhieuDK(PhieuDK phieuDK, MySqlConnection connection, MySqlTransaction transaction)
         {
-            string query = "INSERT INTO PhieuDK (MaKhachHang, MaNV_TiepNhan, NgayTao, SoLanGiaHan, TrangThai) VALUES (@MaKhachHang, @MaNV_TiepNhan, @NgayTao, @SoLanGiaHan, @TrangThai)";
+            string query = "INSERT INTO PhieuDK (MaPhieuDK, MaKhachHang, MaNV_TiepNhan, NgayTao, SoLanGiaHan, TrangThai) " +
+                           "VALUES (@MaPhieuDK, @MaKhachHang, @MaNV_TiepNhan, @NgayTao, @SoLanGiaHan, @TrangThai)";
             var parameters = new[]
             {
-                new MySqlParameter("@MaKhachHang", phieuDK.MaKhachHang),
-                new MySqlParameter("@MaNV_TiepNhan", phieuDK.MaNV_TiepNhan),
-                new MySqlParameter("@NgayTao", phieuDK.NgayTao),
-                new MySqlParameter("@SoLanGiaHan", phieuDK.SoLanGiaHan),
-                new MySqlParameter("@TrangThai", phieuDK.TrangThai)
-            };
-            // Assuming ExecuteNonQuery returns rows affected or use ExecuteQuery if you need the ID
-            return DatabaseHelper.ExecuteNonQuery(query, parameters);
+        new MySqlParameter("@MaPhieuDK", phieuDK.MaPhieuDK),
+        new MySqlParameter("@MaKhachHang", phieuDK.MaKhachHang),
+        new MySqlParameter("@MaNV_TiepNhan", phieuDK.MaNV_TiepNhan),
+        new MySqlParameter("@NgayTao", phieuDK.NgayTao),
+        new MySqlParameter("@SoLanGiaHan", phieuDK.SoLanGiaHan),
+        new MySqlParameter("@TrangThai", phieuDK.TrangThai)
+    };
+            using var command = new MySqlCommand(query, connection, transaction);
+            command.Parameters.AddRange(parameters);
+            int rowsAffected = command.ExecuteNonQuery();
+            return rowsAffected > 0 ? phieuDK.MaPhieuDK : null; // Return the generated MaPhieuDK
         }
-
         public DataTable LayPhieuDK(string maPhieuDK)
         {
             string query = @"

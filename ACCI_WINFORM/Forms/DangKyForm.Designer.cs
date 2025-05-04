@@ -61,13 +61,16 @@
             txtTenThiSinh = new TextBox();
             cbGioiTinhThiSinh = new ComboBox();
             txtNgaySinhThiSinh = new TextBox();
+            label3 = new Label();
+            label18 = new Label();
+            label19 = new Label();
             ((System.ComponentModel.ISupportInitialize)dgvDanhSachThiSinh).BeginInit();
             SuspendLayout();
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label1.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             label1.Location = new Point(65, 68);
             label1.Name = "label1";
             label1.Size = new Size(312, 32);
@@ -104,7 +107,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label6.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             label6.Location = new Point(65, 486);
             label6.Name = "label6";
             label6.Size = new Size(215, 32);
@@ -114,7 +117,7 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Font = new Font("Segoe UI", 7F, FontStyle.Italic);
+            label7.Font = new Font("Segoe UI", 7F, FontStyle.Italic, GraphicsUnit.Point);
             label7.ForeColor = Color.Red;
             label7.Location = new Point(65, 518);
             label7.Name = "label7";
@@ -199,6 +202,7 @@
             cbLoaiKhachHang.Name = "cbLoaiKhachHang";
             cbLoaiKhachHang.Size = new Size(200, 40);
             cbLoaiKhachHang.TabIndex = 17;
+            cbLoaiKhachHang.SelectedIndexChanged += cbLoaiKhachHang_SelectedIndexChanged;
             // 
             // label12
             // 
@@ -230,7 +234,7 @@
             // label15
             // 
             label15.AutoSize = true;
-            label15.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label15.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             label15.Location = new Point(733, 349);
             label15.Name = "label15";
             label15.Size = new Size(231, 32);
@@ -240,7 +244,7 @@
             // label16
             // 
             label16.AutoSize = true;
-            label16.Font = new Font("Segoe UI", 7F, FontStyle.Italic);
+            label16.Font = new Font("Segoe UI", 7F, FontStyle.Italic, GraphicsUnit.Point);
             label16.ForeColor = Color.Red;
             label16.Location = new Point(733, 220);
             label16.Name = "label16";
@@ -251,13 +255,13 @@
             // label17
             // 
             label17.AutoSize = true;
-            label17.Font = new Font("Segoe UI", 7F, FontStyle.Italic);
+            label17.Font = new Font("Segoe UI", 7F, FontStyle.Italic, GraphicsUnit.Point);
             label17.ForeColor = Color.Red;
             label17.Location = new Point(733, 299);
             label17.Name = "label17";
-            label17.Size = new Size(429, 25);
+            label17.Size = new Size(496, 25);
             label17.TabIndex = 23;
-            label17.Text = "*Dành cho đơn vị, nhập theo format (dd/mm/yyyy)";
+            label17.Text = "*Dành cho đơn vị, nhập theo format (dd/mm/yyyy HH:MM)";
             // 
             // dgvDanhSachThiSinh
             // 
@@ -270,7 +274,7 @@
             // 
             // btnThemThiSinh
             // 
-            btnThemThiSinh.Location = new Point(733, 761);
+            btnThemThiSinh.Location = new Point(733, 793);
             btnThemThiSinh.Name = "btnThemThiSinh";
             btnThemThiSinh.Size = new Size(188, 46);
             btnThemThiSinh.TabIndex = 25;
@@ -280,7 +284,7 @@
             // 
             // btnXoaThiSinh
             // 
-            btnXoaThiSinh.Location = new Point(1229, 761);
+            btnXoaThiSinh.Location = new Point(1229, 793);
             btnXoaThiSinh.Name = "btnXoaThiSinh";
             btnXoaThiSinh.Size = new Size(150, 46);
             btnXoaThiSinh.TabIndex = 26;
@@ -315,6 +319,7 @@
             cbLoaiDanhGia.Name = "cbLoaiDanhGia";
             cbLoaiDanhGia.Size = new Size(200, 40);
             cbLoaiDanhGia.TabIndex = 29;
+            cbLoaiDanhGia.SelectedIndexChanged += cbLoaiDanhGia_SelectedIndexChanged_1;
             // 
             // cbLichThi
             // 
@@ -333,7 +338,7 @@
             // 
             // txtTenThiSinh
             // 
-            txtTenThiSinh.Location = new Point(733, 706);
+            txtTenThiSinh.Location = new Point(733, 737);
             txtTenThiSinh.Name = "txtTenThiSinh";
             txtTenThiSinh.Size = new Size(200, 39);
             txtTenThiSinh.TabIndex = 32;
@@ -341,23 +346,55 @@
             // cbGioiTinhThiSinh
             // 
             cbGioiTinhThiSinh.FormattingEnabled = true;
-            cbGioiTinhThiSinh.Location = new Point(1179, 705);
+            cbGioiTinhThiSinh.Location = new Point(1179, 737);
             cbGioiTinhThiSinh.Name = "cbGioiTinhThiSinh";
             cbGioiTinhThiSinh.Size = new Size(200, 40);
             cbGioiTinhThiSinh.TabIndex = 34;
+            cbGioiTinhThiSinh.SelectedIndexChanged += cbGioiTinhThiSinh_SelectedIndexChanged;
             // 
             // txtNgaySinhThiSinh
             // 
-            txtNgaySinhThiSinh.Location = new Point(962, 706);
+            txtNgaySinhThiSinh.Location = new Point(956, 737);
             txtNgaySinhThiSinh.Name = "txtNgaySinhThiSinh";
             txtNgaySinhThiSinh.Size = new Size(200, 39);
             txtNgaySinhThiSinh.TabIndex = 35;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(733, 701);
+            label3.Name = "label3";
+            label3.Size = new Size(90, 32);
+            label3.TabIndex = 36;
+            label3.Text = "Họ Tên";
+            // 
+            // label18
+            // 
+            label18.AutoSize = true;
+            label18.Location = new Point(956, 701);
+            label18.Name = "label18";
+            label18.Size = new Size(124, 32);
+            label18.TabIndex = 37;
+            label18.Text = "Ngày Sinh";
+            // 
+            // label19
+            // 
+            label19.AutoSize = true;
+            label19.Location = new Point(1179, 701);
+            label19.Name = "label19";
+            label19.RightToLeft = RightToLeft.Yes;
+            label19.Size = new Size(105, 32);
+            label19.TabIndex = 38;
+            label19.Text = "Giới tính";
             // 
             // DangKyForm
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1550, 982);
+            Controls.Add(label19);
+            Controls.Add(label18);
+            Controls.Add(label3);
             Controls.Add(txtNgaySinhThiSinh);
             Controls.Add(cbGioiTinhThiSinh);
             Controls.Add(txtTenThiSinh);
@@ -433,5 +470,8 @@
         private TextBox txtTenThiSinh;
         private ComboBox cbGioiTinhThiSinh;
         private TextBox txtNgaySinhThiSinh;
+        private Label label3;
+        private Label label18;
+        private Label label19;
     }
 }
